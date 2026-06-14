@@ -1,0 +1,29 @@
+server:
+    host: 127.0.0.1
+    port: 8080
+    mode: debug
+database:
+    host: 127.0.0.1
+    port: 5432
+    user: sub2api
+    password: f92d724f01afaab377bcea4c0fe5bd951525014ff1735532
+    dbname: sub2api
+    sslmode: disable
+redis:
+    host: 127.0.0.1
+    port: 6379
+    password: ""
+    db: 0
+    enable_tls: false
+jwt:
+    secret: 1a4fd3f0169484f80f75f4c43066b63a6aeb8946912a292189b2655c92878756
+    expire_hour: 24
+default:
+    user_concurrency: 5
+    user_balance: 0
+    api_key_prefix: sk-
+    rate_multiplier: 1
+rate_limit:
+    requests_per_minute: 60
+    burst_size: 10
+timezone: Asia/Shanghai
