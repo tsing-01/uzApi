@@ -15,10 +15,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Wei-Shaw/sub2api/internal/pkg/ctxkey"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/ip"
-	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/uzapi/internal/pkg/ctxkey"
+	"github.com/uzapi/internal/pkg/ip"
+	middleware2 "github.com/uzapi/internal/server/middleware"
+	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 )
 

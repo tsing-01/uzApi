@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	dbent "github.com/Wei-Shaw/sub2api/ent"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	dbent "github.com/uzapi/ent"
+	"github.com/uzapi/internal/service"
 	"github.com/stretchr/testify/suite"
 )
 

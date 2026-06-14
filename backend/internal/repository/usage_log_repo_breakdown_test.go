@@ -5,7 +5,7 @@ package repository
 import (
 	"testing"
 
-	"github.com/Wei-Shaw/sub2api/internal/pkg/usagestats"
+	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/stretchr/testify/require"
 )
 

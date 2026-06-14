@@ -125,6 +125,15 @@
               >
                 <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
               </button>
+              <button
+                @click="exportUsersToExcel"
+                :disabled="exportingUsers || loading"
+                class="btn btn-secondary px-2 md:px-3"
+                title="导出 Excel"
+              >
+                <Icon name="download" size="sm" class="md:mr-1.5" />
+                <span class="hidden md:inline">{{ exportingUsers ? '导出中...' : t('common.export') }}</span>
+              </button>
               <!-- Filter Settings Dropdown -->
               <div class="relative" ref="filterDropdownRef">
                 <button
@@ -740,6 +749,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { saveAs } from 'file-saver'
 import { useAppStore } from '@/stores/app'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { formatDateTime } from '@/utils/format'
@@ -983,6 +993,7 @@ const columns = computed<Column[]>(() =>
 
 const users = ref<AdminUser[]>([])
 const loading = ref(false)
+const exportingUsers = ref(false)
 const searchQuery = ref('')
 const USER_SORT_STORAGE_KEY = 'admin-users-table-sort'
 const loadInitialSortState = (): { sort_by: string; sort_order: 'asc' | 'desc' } => {
@@ -1469,6 +1480,27 @@ const handleAttributesModalClose = async () => {
   loadUsers()
 }
 
+const buildUserListFilters = () => {
+  const attrFilters: Record<number, string> = {}
+  for (const [attrId, value] of Object.entries(activeAttributeFilters)) {
+    if (value) {
+      attrFilters[Number(attrId)] = value
+    }
+  }
+
+  return {
+    role: filters.role as any,
+    status: filters.status as any,
+    search: searchQuery.value || undefined,
+    group_name: filters.group || undefined,
+    attributes: Object.keys(attrFilters).length > 0 ? attrFilters : undefined,
+    // 始终请求 subscriptions：列隐藏时仍需用于 UserPlatformQuotaModal 的 active-subscription 警示 banner
+    include_subscriptions: true,
+    sort_by: sortState.sort_by,
+    sort_order: sortState.sort_order
+  }
+}
+
 const loadUsers = async () => {
   abortController?.abort()
   const currentAbortController = new AbortController()
@@ -1476,28 +1508,10 @@ const loadUsers = async () => {
   const { signal } = currentAbortController
   loading.value = true
   try {
-    // Build attribute filters from active filters
-    const attrFilters: Record<number, string> = {}
-    for (const [attrId, value] of Object.entries(activeAttributeFilters)) {
-      if (value) {
-        attrFilters[Number(attrId)] = value
-      }
-    }
-
     const response = await adminAPI.users.list(
       pagination.page,
       pagination.page_size,
-      {
-        role: filters.role as any,
-        status: filters.status as any,
-        search: searchQuery.value || undefined,
-        group_name: filters.group || undefined,
-        attributes: Object.keys(attrFilters).length > 0 ? attrFilters : undefined,
-        // 始终请求 subscriptions：列隐藏时仍需用于 UserPlatformQuotaModal 的 active-subscription 警示 banner
-        include_subscriptions: true,
-        sort_by: sortState.sort_by,
-        sort_order: sortState.sort_order
-      },
+      buildUserListFilters(),
       { signal }
     )
     if (signal.aborted) {
@@ -1531,6 +1545,137 @@ const loadUsers = async () => {
     if (abortController === currentAbortController) {
       loading.value = false
     }
+  }
+}
+
+const fetchAllExportAttributeValues = async (userIds: number[]) => {
+  const values: Record<number, Record<number, string>> = {}
+  if (attributeDefinitions.value.length === 0 || userIds.length === 0) {
+    return values
+  }
+
+  const CHUNK = 200
+  for (let i = 0; i < userIds.length; i += CHUNK) {
+    const chunk = userIds.slice(i, i + CHUNK)
+    const response = await adminAPI.userAttributes.getBatchUserAttributes(chunk)
+    Object.assign(values, response.attributes)
+  }
+  return values
+}
+
+const formatExportGroups = (user: AdminUser) => {
+  if (allGroups.value.length === 0) return user.allowed_groups?.join(', ') || ''
+  const { exclusive, publicGroups } = getUserGroups(user)
+  const parts: string[] = []
+  if (exclusive.length > 0) parts.push(`专属: ${exclusive.map(g => g.name).join(', ')}`)
+  if (publicGroups.length > 0) parts.push(`公开: ${publicGroups.map(g => g.name).join(', ')}`)
+  return parts.join(' | ')
+}
+
+const formatExportSubscriptions = (user: AdminUser) =>
+  (user.subscriptions || [])
+    .map((sub) => {
+      const name = sub.group?.name || `#${sub.group_id}`
+      return sub.expires_at ? `${name}(${formatDateTime(sub.expires_at)})` : name
+    })
+    .join(', ')
+
+const formatExportAttributeValue = (
+  rawValues: Record<number, Record<number, string>>,
+  userId: number,
+  def: UserAttributeDefinition
+) => {
+  const value = rawValues[userId]?.[def.id]
+  if (!value) return ''
+  if (def.type === 'multi_select') {
+    try {
+      const arr = JSON.parse(value)
+      if (Array.isArray(arr)) {
+        return arr.map(v => def.options?.find(o => o.value === v)?.label || v).join(', ')
+      }
+    } catch {
+      return value
+    }
+  }
+  if (def.type === 'select') {
+    return def.options?.find(o => o.value === value)?.label || value
+  }
+  return value
+}
+
+const exportUsersToExcel = async () => {
+  if (exportingUsers.value) return
+  exportingUsers.value = true
+  try {
+    if (allGroups.value.length === 0) {
+      await loadAllGroups()
+    }
+
+    const pageSize = 500
+    let page = 1
+    let total = 0
+    const exportedUsers: AdminUser[] = []
+    const listFilters = buildUserListFilters()
+
+    while (page === 1 || exportedUsers.length < total) {
+      const response = await adminAPI.users.list(page, pageSize, listFilters)
+      if (page === 1) total = response.total
+      exportedUsers.push(...response.items)
+      if (response.items.length === 0 || response.items.length < pageSize) break
+      page += 1
+    }
+
+    if (exportedUsers.length === 0) {
+      appStore.showWarning('没有可导出的用户')
+      return
+    }
+
+    const userIds = exportedUsers.map((u) => u.id)
+    const exportedAttributes = await fetchAllExportAttributeValues(userIds)
+    const enabledAttributes = attributeDefinitions.value.filter((def) => def.enabled)
+
+    const rows = exportedUsers.map((user) => {
+      const base: Record<string, string | number> = {
+        ID: user.id,
+        Email: user.email,
+        Username: user.username || '',
+        Role: user.role,
+        Status: user.status,
+        Balance: Number(user.balance ?? 0),
+        Concurrency: Number(user.concurrency ?? 0),
+        CurrentConcurrency: Number(user.current_concurrency ?? 0),
+        RPMLimit: Number(user.rpm_limit ?? 0),
+        Groups: formatExportGroups(user),
+        Subscriptions: formatExportSubscriptions(user),
+        Notes: user.notes || '',
+        LastUsedAt: user.last_used_at ? formatDateTime(user.last_used_at) : '',
+        LastActiveAt: user.last_active_at ? formatDateTime(user.last_active_at) : '',
+        CreatedAt: user.created_at ? formatDateTime(user.created_at) : '',
+        UpdatedAt: user.updated_at ? formatDateTime(user.updated_at) : '',
+        DeletedAt: user.deleted_at ? formatDateTime(user.deleted_at) : ''
+      }
+
+      for (const def of enabledAttributes) {
+        base[def.name] = formatExportAttributeValue(exportedAttributes, user.id, def)
+      }
+      return base
+    })
+
+    const XLSX = await import('xlsx')
+    const worksheet = XLSX.utils.json_to_sheet(rows)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const blob = new Blob([XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+    saveAs(blob, `users_${timestamp}.xlsx`)
+    appStore.showSuccess(`已导出 ${exportedUsers.length} 个用户`)
+  } catch (error: any) {
+    console.error('Failed to export users:', error)
+    appStore.showError(error.response?.data?.detail || error.message || '导出失败')
+  } finally {
+    exportingUsers.value = false
   }
 }
 

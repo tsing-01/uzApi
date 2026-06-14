@@ -8,15 +8,15 @@ package main
 
 import (
 	"context"
-	"github.com/Wei-Shaw/sub2api/ent"
-	"github.com/Wei-Shaw/sub2api/internal/config"
-	"github.com/Wei-Shaw/sub2api/internal/handler"
-	"github.com/Wei-Shaw/sub2api/internal/handler/admin"
-	"github.com/Wei-Shaw/sub2api/internal/payment"
-	"github.com/Wei-Shaw/sub2api/internal/repository"
-	"github.com/Wei-Shaw/sub2api/internal/server"
-	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/uzapi/ent"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/handler"
+	"github.com/uzapi/internal/handler/admin"
+	"github.com/uzapi/internal/payment"
+	"github.com/uzapi/internal/repository"
+	"github.com/uzapi/internal/server"
+	"github.com/uzapi/internal/server/middleware"
+	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
@@ -26,7 +26,7 @@ import (
 
 import (
 	_ "embed"
-	_ "github.com/Wei-Shaw/sub2api/ent/runtime"
+	_ "github.com/uzapi/ent/runtime"
 )
 
 // Injectors from wire.go:

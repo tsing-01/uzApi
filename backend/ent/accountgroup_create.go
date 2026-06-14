@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/Wei-Shaw/sub2api/ent/account"
-	"github.com/Wei-Shaw/sub2api/ent/accountgroup"
-	"github.com/Wei-Shaw/sub2api/ent/group"
+	"github.com/uzapi/ent/account"
+	"github.com/uzapi/ent/accountgroup"
+	"github.com/uzapi/ent/group"
 )
 
 // AccountGroupCreate is the builder for creating a AccountGroup entity.

@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"time"
 
-	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
-	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	infraerrors "github.com/uzapi/internal/pkg/errors"
+	"github.com/uzapi/internal/pkg/logger"
+	"github.com/uzapi/internal/pkg/response"
+	middleware2 "github.com/uzapi/internal/server/middleware"
+	"github.com/uzapi/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

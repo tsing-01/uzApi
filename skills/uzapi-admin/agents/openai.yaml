@@ -1,0 +1,7 @@
+interface:
+  display_name: "uzApi Admin"
+  short_description: "Manage uzApi admin accounts and settings"
+  default_prompt: "Use $uzapi-admin to inspect and manage uzApi backend accounts safely."
+
+policy:
+  allow_implicit_invocation: true

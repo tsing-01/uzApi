@@ -3,7 +3,7 @@ package schema
 import (
 	"time"
 
-	"github.com/Wei-Shaw/sub2api/internal/domain"
+	"github.com/uzapi/internal/domain"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"

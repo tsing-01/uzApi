@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Wei-Shaw/sub2api/internal/config"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/websearch"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/pkg/websearch"
 	"github.com/stretchr/testify/require"
 )
 

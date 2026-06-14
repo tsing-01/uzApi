@@ -4,11 +4,11 @@ import (
 	"context"
 	"strings"
 
-	dbent "github.com/Wei-Shaw/sub2api/ent"
-	"github.com/Wei-Shaw/sub2api/ent/promocode"
-	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	dbent "github.com/uzapi/ent"
+	"github.com/uzapi/ent/promocode"
+	"github.com/uzapi/ent/promocodeusage"
+	"github.com/uzapi/internal/pkg/pagination"
+	"github.com/uzapi/internal/service"
 
 	entsql "entgo.io/ent/dialect/sql"
 )

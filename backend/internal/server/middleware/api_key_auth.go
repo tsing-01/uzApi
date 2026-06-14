@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Wei-Shaw/sub2api/internal/config"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/ctxkey"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/ip"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/pkg/ctxkey"
+	"github.com/uzapi/internal/pkg/ip"
+	"github.com/uzapi/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

@@ -3,8 +3,8 @@
 package repository
 
 import (
-	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/uzapi/internal/pkg/pagination"
+	"github.com/uzapi/internal/service"
 )
 
 // TestListWithAccountCountSort_AttachesActiveCount 验证通过 account_count 排序时，

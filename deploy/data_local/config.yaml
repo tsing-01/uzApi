@@ -5,9 +5,9 @@ server:
 database:
     host: 127.0.0.1
     port: 5432
-    user: sub2api
+    user: uzapi
     password: f92d724f01afaab377bcea4c0fe5bd951525014ff1735532
-    dbname: sub2api
+    dbname: uzapi
     sslmode: disable
 redis:
     host: 127.0.0.1

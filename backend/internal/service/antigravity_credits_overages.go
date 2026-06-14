@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Wei-Shaw/sub2api/internal/pkg/antigravity"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
+	"github.com/uzapi/internal/pkg/antigravity"
+	"github.com/uzapi/internal/pkg/logger"
 )
 
 const (

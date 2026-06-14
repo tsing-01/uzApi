@@ -3,10 +3,10 @@ package repository
 import (
 	"context"
 
-	"github.com/Wei-Shaw/sub2api/ent"
-	"github.com/Wei-Shaw/sub2api/ent/tlsfingerprintprofile"
-	"github.com/Wei-Shaw/sub2api/internal/model"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/uzapi/ent"
+	"github.com/uzapi/ent/tlsfingerprintprofile"
+	"github.com/uzapi/internal/model"
+	"github.com/uzapi/internal/service"
 )
 
 type tlsFingerprintProfileRepository struct {

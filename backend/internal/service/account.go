@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Wei-Shaw/sub2api/internal/config"
-	"github.com/Wei-Shaw/sub2api/internal/domain"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/domain"
 )
 
 type Account struct {

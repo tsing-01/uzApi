@@ -1,0 +1,33 @@
+[Unit]
+Description=uzApi - AI API Gateway Platform
+Documentation=https://github.com/uzapi
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=uzapi
+Group=uzapi
+WorkingDirectory=/opt/uzapi
+ExecStart=/opt/uzapi/uzapi
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=uzapi
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/uzapi
+
+# Environment - Server configuration
+# Modify these values to change listen address and port
+Environment=GIN_MODE=release
+Environment=SERVER_HOST=0.0.0.0
+Environment=SERVER_PORT=8080
+
+[Install]
+WantedBy=multi-user.target

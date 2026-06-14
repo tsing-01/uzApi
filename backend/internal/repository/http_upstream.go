@@ -19,12 +19,12 @@ import (
 
 	"github.com/andybalholm/brotli"
 
-	"github.com/Wei-Shaw/sub2api/internal/config"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/proxyurl"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/proxyutil"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/tlsfingerprint"
-	"github.com/Wei-Shaw/sub2api/internal/service"
-	"github.com/Wei-Shaw/sub2api/internal/util/urlvalidator"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/pkg/proxyurl"
+	"github.com/uzapi/internal/pkg/proxyutil"
+	"github.com/uzapi/internal/pkg/tlsfingerprint"
+	"github.com/uzapi/internal/service"
+	"github.com/uzapi/internal/util/urlvalidator"
 )
 
 // 默认配置常量

@@ -13,12 +13,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/Wei-Shaw/sub2api/ent/account"
-	"github.com/Wei-Shaw/sub2api/ent/accountgroup"
-	"github.com/Wei-Shaw/sub2api/ent/group"
-	"github.com/Wei-Shaw/sub2api/ent/predicate"
-	"github.com/Wei-Shaw/sub2api/ent/proxy"
-	"github.com/Wei-Shaw/sub2api/ent/usagelog"
+	"github.com/uzapi/ent/account"
+	"github.com/uzapi/ent/accountgroup"
+	"github.com/uzapi/ent/group"
+	"github.com/uzapi/ent/predicate"
+	"github.com/uzapi/ent/proxy"
+	"github.com/uzapi/ent/usagelog"
 )
 
 // AccountQuery is the builder for querying Account entities.

@@ -7,10 +7,10 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/Wei-Shaw/sub2api/ent/runtime"
-	"github.com/Wei-Shaw/sub2api/internal/config"
-	"github.com/Wei-Shaw/sub2api/internal/repository"
-	"github.com/Wei-Shaw/sub2api/internal/service"
+	_ "github.com/uzapi/ent/runtime"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/repository"
+	"github.com/uzapi/internal/service"
 )
 
 func main() {

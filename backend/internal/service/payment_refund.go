@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	dbent "github.com/Wei-Shaw/sub2api/ent"
-	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
-	"github.com/Wei-Shaw/sub2api/ent/paymentproviderinstance"
-	"github.com/Wei-Shaw/sub2api/internal/payment"
-	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
+	dbent "github.com/uzapi/ent"
+	"github.com/uzapi/ent/paymentorder"
+	"github.com/uzapi/ent/paymentproviderinstance"
+	"github.com/uzapi/internal/payment"
+	infraerrors "github.com/uzapi/internal/pkg/errors"
 )
 
 // --- Refund Flow ---
