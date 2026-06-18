@@ -49,7 +49,7 @@ func TestToUserSupportedModels_FiltersByAllowedPlatforms(t *testing.T) {
 		{Name: "gpt-4o", Platform: "openai", Pricing: nil},
 	}
 	allowed := map[string]struct{}{"anthropic": {}}
-	out := toUserSupportedModels(src, allowed)
+	out := toUserSupportedModels(src, allowed, 1)
 	require.Len(t, out, 1)
 	require.Equal(t, "claude-sonnet-4-6", out[0].Name)
 }
@@ -60,7 +60,7 @@ func TestToUserSupportedModels_NilAllowedPlatformsKeepsAll(t *testing.T) {
 		{Name: "a", Platform: "anthropic"},
 		{Name: "b", Platform: "openai"},
 	}
-	require.Len(t, toUserSupportedModels(src, nil), 2)
+	require.Len(t, toUserSupportedModels(src, nil, 1), 2)
 }
 
 func TestUserAvailableChannel_FieldWhitelist(t *testing.T) {
@@ -118,7 +118,7 @@ func TestUserAvailableChannel_FieldWhitelist(t *testing.T) {
 		Intervals: []service.PricingInterval{
 			{ID: 7, MinTokens: 0, MaxTokens: nil, SortOrder: 3},
 		},
-	})
+	}, 1)
 	require.NotNil(t, pricing)
 	require.Len(t, pricing.Intervals, 1)
 	rawIv, err := json.Marshal(pricing.Intervals[0])
@@ -146,7 +146,7 @@ func TestBuildPlatformSections_GroupsByPlatform(t *testing.T) {
 		{ID: 2, Name: "g-ant", Platform: "anthropic"},
 		{ID: 3, Name: "g-empty", Platform: ""},
 	}
-	sections := buildPlatformSections(ch, visible)
+	sections := buildPlatformSections(ch, visible, nil, 1)
 	require.Len(t, sections, 2)
 	require.Equal(t, "anthropic", sections[0].Platform)
 	require.Equal(t, "openai", sections[1].Platform)
@@ -154,4 +154,22 @@ func TestBuildPlatformSections_GroupsByPlatform(t *testing.T) {
 	require.Equal(t, int64(2), sections[0].Groups[0].ID)
 	require.Len(t, sections[0].SupportedModels, 1)
 	require.Equal(t, "claude-sonnet-4-6", sections[0].SupportedModels[0].Name)
+}
+
+func TestToUserPricing_AppliesDisplayMultiplier(t *testing.T) {
+	input := 0.000001
+	image := 0.02
+	intervalInput := 0.000002
+	pricing := toUserPricing(&service.ChannelModelPricing{
+		BillingMode:      service.BillingModeToken,
+		InputPrice:       &input,
+		ImageOutputPrice: &image,
+		Intervals: []service.PricingInterval{
+			{MinTokens: 0, InputPrice: &intervalInput},
+		},
+	}, 1.3)
+	require.NotNil(t, pricing)
+	require.InDelta(t, 0.0000013, *pricing.InputPrice, 1e-12)
+	require.InDelta(t, 0.026, *pricing.ImageOutputPrice, 1e-12)
+	require.InDelta(t, 0.0000026, *pricing.Intervals[0].InputPrice, 1e-12)
 }

@@ -17,10 +17,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/imroc/req/v3"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/antigravity"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
-	"github.com/imroc/req/v3"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -759,6 +759,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyChannelMonitorEnabled,
 		SettingKeyChannelMonitorDefaultIntervalSeconds,
 		SettingKeyAvailableChannelsEnabled,
+		SettingKeyPricingProfitMultiplier,
 		SettingKeyAffiliateEnabled,
 		SettingKeyRiskControlEnabled,
 		SettingKeyAllowUserViewErrorRequests,
@@ -870,6 +871,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		ChannelMonitorDefaultIntervalSeconds: parseChannelMonitorInterval(settings[SettingKeyChannelMonitorDefaultIntervalSeconds]),
 
 		AvailableChannelsEnabled: settings[SettingKeyAvailableChannelsEnabled] == "true",
+		PricingProfitMultiplier:  normalizePricingProfitMultiplier(settings[SettingKeyPricingProfitMultiplier]),
 
 		AffiliateEnabled: settings[SettingKeyAffiliateEnabled] == "true",
 
@@ -937,19 +939,21 @@ func (s *SettingService) GetChannelMonitorRuntime(ctx context.Context) ChannelMo
 // AvailableChannelsRuntime is the lightweight view of the available-channels feature
 // switch consumed by the user-facing handler.
 type AvailableChannelsRuntime struct {
-	Enabled bool
+	Enabled                 bool
+	PricingProfitMultiplier float64
 }
 
 // GetAvailableChannelsRuntime reads the available-channels feature switch directly
 // from the settings store. Fail-closed: on error returns Enabled=false, matching
 // the opt-in default (unknown ↔ disabled).
 func (s *SettingService) GetAvailableChannelsRuntime(ctx context.Context) AvailableChannelsRuntime {
-	vals, err := s.settingRepo.GetMultiple(ctx, []string{SettingKeyAvailableChannelsEnabled})
+	vals, err := s.settingRepo.GetMultiple(ctx, []string{SettingKeyAvailableChannelsEnabled, SettingKeyPricingProfitMultiplier})
 	if err != nil {
-		return AvailableChannelsRuntime{Enabled: false}
+		return AvailableChannelsRuntime{Enabled: false, PricingProfitMultiplier: 1}
 	}
 	return AvailableChannelsRuntime{
-		Enabled: vals[SettingKeyAvailableChannelsEnabled] == "true",
+		Enabled:                 vals[SettingKeyAvailableChannelsEnabled] == "true",
+		PricingProfitMultiplier: normalizePricingProfitMultiplier(vals[SettingKeyPricingProfitMultiplier]),
 	}
 }
 
@@ -1184,12 +1188,13 @@ type PublicSettingsInjectionPayload struct {
 	// Feature flags — MUST match the opt-in/opt-out registry in
 	// frontend/src/utils/featureFlags.ts. Missing a field here is the bug
 	// that hid the "可用渠道" menu on page refresh.
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-	AvailableChannelsEnabled             bool `json:"available_channels_enabled"`
-	AffiliateEnabled                     bool `json:"affiliate_enabled"`
-	RiskControlEnabled                   bool `json:"risk_control_enabled"`
-	AllowUserViewErrorRequests           bool `json:"allow_user_view_error_requests"`
+	ChannelMonitorEnabled                bool    `json:"channel_monitor_enabled"`
+	ChannelMonitorDefaultIntervalSeconds int     `json:"channel_monitor_default_interval_seconds"`
+	AvailableChannelsEnabled             bool    `json:"available_channels_enabled"`
+	PricingProfitMultiplier              float64 `json:"pricing_profit_multiplier"`
+	AffiliateEnabled                     bool    `json:"affiliate_enabled"`
+	RiskControlEnabled                   bool    `json:"risk_control_enabled"`
+	AllowUserViewErrorRequests           bool    `json:"allow_user_view_error_requests"`
 }
 
 // GetPublicSettingsForInjection returns public settings in a format suitable for HTML injection.
@@ -1888,6 +1893,10 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 
 	// Available channels feature switch
 	updates[SettingKeyAvailableChannelsEnabled] = strconv.FormatBool(settings.AvailableChannelsEnabled)
+	if settings.PricingProfitMultiplier <= 0 {
+		return nil, infraerrors.BadRequest("INVALID_PRICING_PROFIT_MULTIPLIER", "pricing profit multiplier must be greater than 0")
+	}
+	updates[SettingKeyPricingProfitMultiplier] = strconv.FormatFloat(settings.PricingProfitMultiplier, 'f', 6, 64)
 
 	// Affiliate (邀请返利) feature switch
 	updates[SettingKeyAffiliateEnabled] = strconv.FormatBool(settings.AffiliateEnabled)
@@ -2812,6 +2821,7 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 
 		// Available channels feature (default disabled; opt-in)
 		SettingKeyAvailableChannelsEnabled: "false",
+		SettingKeyPricingProfitMultiplier:  "1",
 
 		// Affiliate (邀请返利) feature (default disabled; opt-in)
 		SettingKeyAffiliateEnabled: "false",
@@ -3321,6 +3331,7 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 
 	// Available channels feature (default: disabled; strict true)
 	result.AvailableChannelsEnabled = settings[SettingKeyAvailableChannelsEnabled] == "true"
+	result.PricingProfitMultiplier = normalizePricingProfitMultiplier(settings[SettingKeyPricingProfitMultiplier])
 
 	// Affiliate (邀请返利) feature (default: disabled; strict true)
 	result.AffiliateEnabled = settings[SettingKeyAffiliateEnabled] == "true"
@@ -4888,4 +4899,12 @@ func mergePlatformQuotaDefaults(dst, src *DefaultPlatformQuotaSetting) {
 	if src.MonthlyLimitUSD != nil {
 		dst.MonthlyLimitUSD = src.MonthlyLimitUSD
 	}
+}
+
+func normalizePricingProfitMultiplier(raw string) float64 {
+	v, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+	if err != nil || v <= 0 || math.IsNaN(v) || math.IsInf(v, 0) {
+		return 1
+	}
+	return v
 }

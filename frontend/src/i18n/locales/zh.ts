@@ -5528,6 +5528,9 @@ export default {
           configureLink: '前往 渠道管理 > 渠道定价 配置模型价格',
           enabled: '启用可用渠道',
           enabledHint: '关闭后用户端侧边栏入口隐藏，接口返回空数组。',
+          profitMultiplier: '用户售价倍率',
+          profitMultiplierHint: '用户端显示价格和实际扣费都会按基础模型/图片价格乘以该倍率。示例：1.3 表示加价 30%。',
+          profitMultiplierPreview: '预览：基础成本 $100.00，用户侧显示/扣费 ${amount}',
         },
         riskControl: {
           title: '风控中心',

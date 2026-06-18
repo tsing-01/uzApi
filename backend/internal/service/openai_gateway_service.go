@@ -20,6 +20,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/apicompat"
 	"github.com/uzapi/internal/pkg/ip"
@@ -28,11 +33,6 @@ import (
 	"github.com/uzapi/internal/pkg/openai_compat"
 	"github.com/uzapi/internal/util/responseheaders"
 	"github.com/uzapi/internal/util/urlvalidator"
-	"github.com/cespare/xxhash/v2"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 	"go.uber.org/zap"
 )
 
@@ -5798,7 +5798,9 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		}
 		multiplier = resolver.Resolve(ctx, user.ID, *apiKey.GroupID, apiKey.Group.RateMultiplier)
 	}
-	imageMultiplier := resolveImageRateMultiplier(apiKey, multiplier)
+	profitMultiplier := s.resolvePricingProfitMultiplier(ctx)
+	imageMultiplier := resolveImageRateMultiplier(apiKey, multiplier) * profitMultiplier
+	multiplier *= profitMultiplier
 
 	var cost *CostBreakdown
 	var err error
@@ -6088,6 +6090,17 @@ func (s *OpenAIGatewayService) calculateOpenAIImageCost(
 		}
 	}
 	return s.billingService.CalculateImageCost(billingModel, sizeTier, result.ImageCount, groupConfig, multiplier)
+}
+
+func (s *OpenAIGatewayService) resolvePricingProfitMultiplier(ctx context.Context) float64 {
+	if s == nil || s.settingService == nil {
+		return 1
+	}
+	m := s.settingService.GetAvailableChannelsRuntime(ctx).PricingProfitMultiplier
+	if m <= 0 {
+		return 1
+	}
+	return m
 }
 
 func (s *OpenAIGatewayService) resolveOpenAIChannelPricing(ctx context.Context, billingModel string, apiKey *APIKey) *ResolvedPricing {

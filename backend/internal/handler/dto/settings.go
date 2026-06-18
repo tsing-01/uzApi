@@ -239,7 +239,8 @@ type SystemSettings struct {
 	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
 
 	// Available Channels feature switch (user-facing aggregate view)
-	AvailableChannelsEnabled bool `json:"available_channels_enabled"`
+	AvailableChannelsEnabled bool    `json:"available_channels_enabled"`
+	PricingProfitMultiplier  float64 `json:"pricing_profit_multiplier"`
 
 	// 风控中心功能开关
 	RiskControlEnabled bool `json:"risk_control_enabled"`

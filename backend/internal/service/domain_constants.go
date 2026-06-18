@@ -361,6 +361,10 @@ const (
 	// sidebar entry is hidden. Defaults to false (opt-in feature).
 	SettingKeyAvailableChannelsEnabled = "available_channels_enabled"
 
+	// SettingKeyPricingProfitMultiplier controls the platform-wide markup applied on top
+	// of base model/image prices for user billing and user-visible pricing.
+	SettingKeyPricingProfitMultiplier = "pricing_profit_multiplier"
+
 	// =========================
 	// Overload Cooldown (529)
 	// =========================

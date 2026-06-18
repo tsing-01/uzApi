@@ -5368,6 +5368,9 @@ export default {
           configureLink: 'Configure model pricing in Channel Management > Channel Pricing',
           enabled: 'Enable Available Channels',
           enabledHint: 'When off, the sidebar entry is hidden and the endpoint returns an empty list.',
+          profitMultiplier: 'User price multiplier',
+          profitMultiplierHint: 'User-visible pricing and billing multiply base token/image prices by this value. Example: 1.3 means a 30% markup.',
+          profitMultiplierPreview: 'Preview: base cost $100.00, user-visible/billed ${amount}',
         },
         riskControl: {
           title: 'Risk Control',

@@ -5264,6 +5264,30 @@
               </div>
               <Toggle v-model="form.available_channels_enabled" />
             </div>
+            <div class="grid gap-2 sm:max-w-xs">
+              <label class="input-label">{{ t('admin.settings.features.availableChannels.profitMultiplier') }}</label>
+              <input
+                :value="form.pricing_profit_multiplier || ''"
+                @input="
+                  form.pricing_profit_multiplier =
+                    parseFloat(($event.target as HTMLInputElement).value) || 1
+                "
+                type="number"
+                step="0.01"
+                min="0.01"
+                class="input"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('admin.settings.features.availableChannels.profitMultiplierHint') }}
+              </p>
+              <p class="text-xs font-medium text-primary-600 dark:text-primary-400">
+                {{
+                  t('admin.settings.features.availableChannels.profitMultiplierPreview', {
+                    amount: (100 * (Number(form.pricing_profit_multiplier) || 1)).toFixed(2),
+                  })
+                }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -7217,6 +7241,7 @@ const form = reactive<SettingsForm>({
   channel_monitor_default_interval_seconds: 60,
   // Available Channels feature switch
   available_channels_enabled: false,
+  pricing_profit_multiplier: 1,
   // Affiliate (邀请返利) feature switch
   affiliate_enabled: false,
   // Allow user view error requests
@@ -8360,6 +8385,7 @@ async function saveSettings() {
         Number(form.channel_monitor_default_interval_seconds) || 60,
       // Available Channels feature switch
       available_channels_enabled: form.available_channels_enabled,
+      pricing_profit_multiplier: Number(form.pricing_profit_multiplier) || 1,
       // Affiliate (邀请返利) feature switch
       affiliate_enabled: form.affiliate_enabled,
       allow_user_view_error_requests: form.allow_user_view_error_requests,

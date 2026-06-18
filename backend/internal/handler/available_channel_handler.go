@@ -41,10 +41,14 @@ func NewAvailableChannelHandler(
 
 // featureEnabled 返回 available-channels 开关是否启用。默认关闭（opt-in）。
 func (h *AvailableChannelHandler) featureEnabled(c *gin.Context) bool {
+	return h.availableChannelsRuntime(c).Enabled
+}
+
+func (h *AvailableChannelHandler) availableChannelsRuntime(c *gin.Context) service.AvailableChannelsRuntime {
 	if h.settingService == nil {
-		return false
+		return service.AvailableChannelsRuntime{Enabled: false, PricingProfitMultiplier: 1}
 	}
-	return h.settingService.GetAvailableChannelsRuntime(c.Request.Context()).Enabled
+	return h.settingService.GetAvailableChannelsRuntime(c.Request.Context())
 }
 
 // userAvailableGroup 用户可见的分组概要（白名单字段）。
@@ -122,7 +126,8 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 
 	// Feature 未启用时返回空数组（不暴露渠道信息）。检查放在认证之后，
 	// 保持与未开关前的 401 行为一致：未登录先 401，登录后再按开关决定。
-	if !h.featureEnabled(c) {
+	runtime := h.availableChannelsRuntime(c)
+	if !runtime.Enabled {
 		response.Success(c, []userAvailableChannel{})
 		return
 	}
@@ -135,6 +140,11 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 	allowedGroupIDs := make(map[int64]struct{}, len(userGroups))
 	for i := range userGroups {
 		allowedGroupIDs[userGroups[i].ID] = struct{}{}
+	}
+	userGroupRates, err := h.apiKeyService.GetUserGroupRates(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
 	}
 
 	channels, err := h.channelService.ListAvailable(c.Request.Context())
@@ -152,7 +162,7 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 		if len(visibleGroups) == 0 {
 			continue
 		}
-		sections := buildPlatformSections(ch, visibleGroups)
+		sections := buildPlatformSections(ch, visibleGroups, userGroupRates, runtime.PricingProfitMultiplier)
 		if len(sections) == 0 {
 			continue
 		}
@@ -172,6 +182,8 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 func buildPlatformSections(
 	ch service.AvailableChannel,
 	visibleGroups []userAvailableGroup,
+	userGroupRates map[int64]float64,
+	pricingProfitMultiplier float64,
 ) []userChannelPlatformSection {
 	groupsByPlatform := make(map[string][]userAvailableGroup, 4)
 	for _, g := range visibleGroups {
@@ -193,10 +205,11 @@ func buildPlatformSections(
 	sections := make([]userChannelPlatformSection, 0, len(platforms))
 	for _, platform := range platforms {
 		platformSet := map[string]struct{}{platform: {}}
+		effectiveMultiplier := displayPricingMultiplier(groupsByPlatform[platform], userGroupRates, pricingProfitMultiplier)
 		sections = append(sections, userChannelPlatformSection{
 			Platform:        platform,
 			Groups:          groupsByPlatform[platform],
-			SupportedModels: toUserSupportedModels(ch.SupportedModels, platformSet),
+			SupportedModels: toUserSupportedModels(ch.SupportedModels, platformSet, effectiveMultiplier),
 		})
 	}
 	return sections
@@ -230,6 +243,7 @@ func filterUserVisibleGroups(
 func toUserSupportedModels(
 	src []service.SupportedModel,
 	allowedPlatforms map[string]struct{},
+	priceMultiplier float64,
 ) []userSupportedModel {
 	out := make([]userSupportedModel, 0, len(src))
 	for i := range src {
@@ -242,28 +256,29 @@ func toUserSupportedModels(
 		out = append(out, userSupportedModel{
 			Name:     m.Name,
 			Platform: m.Platform,
-			Pricing:  toUserPricing(m.Pricing),
+			Pricing:  toUserPricing(m.Pricing, priceMultiplier),
 		})
 	}
 	return out
 }
 
 // toUserPricing 将 service 层定价转换为用户 DTO；入参为 nil 时返回 nil。
-func toUserPricing(p *service.ChannelModelPricing) *userSupportedModelPricing {
+func toUserPricing(p *service.ChannelModelPricing, multiplier float64) *userSupportedModelPricing {
 	if p == nil {
 		return nil
 	}
+	multiplier = normalizeDisplayPricingMultiplier(multiplier)
 	intervals := make([]userPricingIntervalDTO, 0, len(p.Intervals))
 	for _, iv := range p.Intervals {
 		intervals = append(intervals, userPricingIntervalDTO{
 			MinTokens:       iv.MinTokens,
 			MaxTokens:       iv.MaxTokens,
 			TierLabel:       iv.TierLabel,
-			InputPrice:      iv.InputPrice,
-			OutputPrice:     iv.OutputPrice,
-			CacheWritePrice: iv.CacheWritePrice,
-			CacheReadPrice:  iv.CacheReadPrice,
-			PerRequestPrice: iv.PerRequestPrice,
+			InputPrice:      multiplyOptionalPrice(iv.InputPrice, multiplier),
+			OutputPrice:     multiplyOptionalPrice(iv.OutputPrice, multiplier),
+			CacheWritePrice: multiplyOptionalPrice(iv.CacheWritePrice, multiplier),
+			CacheReadPrice:  multiplyOptionalPrice(iv.CacheReadPrice, multiplier),
+			PerRequestPrice: multiplyOptionalPrice(iv.PerRequestPrice, multiplier),
 		})
 	}
 	billingMode := string(p.BillingMode)
@@ -272,12 +287,51 @@ func toUserPricing(p *service.ChannelModelPricing) *userSupportedModelPricing {
 	}
 	return &userSupportedModelPricing{
 		BillingMode:      billingMode,
-		InputPrice:       p.InputPrice,
-		OutputPrice:      p.OutputPrice,
-		CacheWritePrice:  p.CacheWritePrice,
-		CacheReadPrice:   p.CacheReadPrice,
-		ImageOutputPrice: p.ImageOutputPrice,
-		PerRequestPrice:  p.PerRequestPrice,
+		InputPrice:       multiplyOptionalPrice(p.InputPrice, multiplier),
+		OutputPrice:      multiplyOptionalPrice(p.OutputPrice, multiplier),
+		CacheWritePrice:  multiplyOptionalPrice(p.CacheWritePrice, multiplier),
+		CacheReadPrice:   multiplyOptionalPrice(p.CacheReadPrice, multiplier),
+		ImageOutputPrice: multiplyOptionalPrice(p.ImageOutputPrice, multiplier),
+		PerRequestPrice:  multiplyOptionalPrice(p.PerRequestPrice, multiplier),
 		Intervals:        intervals,
 	}
+}
+
+func displayPricingMultiplier(groups []userAvailableGroup, userGroupRates map[int64]float64, pricingProfitMultiplier float64) float64 {
+	profit := normalizeDisplayPricingMultiplier(pricingProfitMultiplier)
+	if len(groups) == 0 {
+		return profit
+	}
+	minGroupMultiplier := 0.0
+	for _, g := range groups {
+		groupMultiplier := g.RateMultiplier
+		if userGroupRates != nil {
+			if override, ok := userGroupRates[g.ID]; ok {
+				groupMultiplier = override
+			}
+		}
+		groupMultiplier = normalizeDisplayPricingMultiplier(groupMultiplier)
+		if minGroupMultiplier == 0 || groupMultiplier < minGroupMultiplier {
+			minGroupMultiplier = groupMultiplier
+		}
+	}
+	if minGroupMultiplier == 0 {
+		minGroupMultiplier = 1
+	}
+	return minGroupMultiplier * profit
+}
+
+func normalizeDisplayPricingMultiplier(v float64) float64 {
+	if v <= 0 {
+		return 1
+	}
+	return v
+}
+
+func multiplyOptionalPrice(price *float64, multiplier float64) *float64 {
+	if price == nil {
+		return nil
+	}
+	v := *price * normalizeDisplayPricingMultiplier(multiplier)
+	return &v
 }
