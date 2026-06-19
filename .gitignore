@@ -119,6 +119,10 @@ tests
 CLAUDE.md
 .claude
 scripts
+!scripts/
+!scripts/aliyun-bootstrap.sh
+!scripts/aliyun-deploy.sh
+!scripts/backup-db.sh
 .code-review-state
 #openspec/
 code-reviews/
