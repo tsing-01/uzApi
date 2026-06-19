@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	dbent "github.com/uzapi/ent"
 	dbaccount "github.com/uzapi/ent/account"
 	dbaccountgroup "github.com/uzapi/ent/accountgroup"
@@ -28,7 +29,6 @@ import (
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/service"
-	"github.com/lib/pq"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"

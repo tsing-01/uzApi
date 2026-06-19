@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uzapi/internal/pkg/response"
 	middleware2 "github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 var validSlugPattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uzapi/internal/server/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/uzapi/internal/server/middleware"
 )
 
 const (

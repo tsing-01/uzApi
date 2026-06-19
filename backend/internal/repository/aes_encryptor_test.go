@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 // ── 测试辅助 ─────────────────────────────────────────────────────────────────

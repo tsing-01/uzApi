@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/handler"
 	servermiddleware "github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
 )
 
 func newGatewayRoutesTestRouter() *gin.Engine {

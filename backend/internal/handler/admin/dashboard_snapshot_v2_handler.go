@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 var dashboardSnapshotV2Cache = newSnapshotCache(30 * time.Second)

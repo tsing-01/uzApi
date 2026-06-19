@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/uzapi/internal/config"
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/service"
 )
 
 type bmSettingRepo struct {

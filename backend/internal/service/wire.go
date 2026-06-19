@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/payment"
 	"github.com/uzapi/internal/pkg/antigravity"
 	"github.com/uzapi/internal/pkg/logger"
-	"github.com/google/wire"
-	"github.com/redis/go-redis/v9"
 )
 
 // BuildInfo contains build information

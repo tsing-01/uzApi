@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/lib/pq"
+	gocache "github.com/patrickmn/go-cache"
 	dbent "github.com/uzapi/ent"
 	dbaccount "github.com/uzapi/ent/account"
 	dbapikey "github.com/uzapi/ent/apikey"
@@ -25,8 +27,6 @@ import (
 	"github.com/uzapi/internal/pkg/timezone"
 	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/uzapi/internal/service"
-	"github.com/lib/pq"
-	gocache "github.com/patrickmn/go-cache"
 	"golang.org/x/sync/errgroup"
 )
 

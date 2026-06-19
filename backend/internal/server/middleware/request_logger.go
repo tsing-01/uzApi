@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/uzapi/internal/pkg/ctxkey"
-	"github.com/uzapi/internal/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/uzapi/internal/pkg/ctxkey"
+	"github.com/uzapi/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 

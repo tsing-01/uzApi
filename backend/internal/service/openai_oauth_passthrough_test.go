@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/pkg/openai_compat"
 	"github.com/uzapi/internal/pkg/tlsfingerprint"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
-	"github.com/tidwall/gjson"
 )
 
 func f64p(v float64) *float64 { return &v }

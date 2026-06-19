@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/apikey"
 	"github.com/uzapi/ent/authidentity"
@@ -22,7 +23,6 @@ import (
 	"github.com/uzapi/ent/usersubscription"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/service"
-	"github.com/lib/pq"
 
 	entsql "entgo.io/ent/dialect/sql"
 )

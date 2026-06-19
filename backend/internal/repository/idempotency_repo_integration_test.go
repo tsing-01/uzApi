@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/service"
 )
 
 // hashedTestValue returns a unique SHA-256 hex string (64 chars) that fits VARCHAR(64) columns.

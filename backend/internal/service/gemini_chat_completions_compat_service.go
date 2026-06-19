@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uzapi/internal/pkg/apicompat"
 	"github.com/uzapi/internal/pkg/geminicli"
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/util/responseheaders"
-	"github.com/gin-gonic/gin"
 )
 
 // ForwardAsChatCompletions serves OpenAI Chat Completions clients through

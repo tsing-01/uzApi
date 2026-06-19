@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/pkg/pagination"
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/pagination"
+	"github.com/uzapi/internal/service"
 )
 
 type announcementRepoCapture struct {

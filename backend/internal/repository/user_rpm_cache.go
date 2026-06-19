@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
+	"github.com/uzapi/internal/service"
 )
 
 // 用户/分组级 RPM 计数器 Redis 实现。

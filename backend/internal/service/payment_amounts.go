@@ -3,8 +3,8 @@ package service
 import (
 	"math"
 
-	"github.com/uzapi/internal/payment"
 	"github.com/shopspring/decimal"
+	"github.com/uzapi/internal/payment"
 )
 
 const defaultBalanceRechargeMultiplier = 1.0

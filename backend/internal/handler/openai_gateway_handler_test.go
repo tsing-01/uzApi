@@ -11,17 +11,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
-	pkghttputil "github.com/uzapi/internal/pkg/httputil"
-	"github.com/uzapi/internal/pkg/pagination"
-	"github.com/uzapi/internal/server/middleware"
-	"github.com/uzapi/internal/service"
 	coderws "github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/uzapi/internal/config"
+	pkghttputil "github.com/uzapi/internal/pkg/httputil"
+	"github.com/uzapi/internal/pkg/pagination"
+	"github.com/uzapi/internal/server/middleware"
+	"github.com/uzapi/internal/service"
 )
 
 func TestOpenAIHandleStreamingAwareError_JSONEscaping(t *testing.T) {

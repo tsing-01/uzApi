@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/user"
 	"github.com/uzapi/internal/service"
-	"github.com/lib/pq"
 )
 
 const (

@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/antigravity"
 	"github.com/uzapi/internal/pkg/tlsfingerprint"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
 )
 
 // antigravityFailingWriter 模拟客户端断开连接的 gin.ResponseWriter

@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/authidentity"
 	"github.com/uzapi/ent/authidentitychannel"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/suite"
 )
 
 type UserRepoSuite struct {

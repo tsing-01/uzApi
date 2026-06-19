@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 // dbFallbackRepoStub extends errorPolicyRepoStub with a configurable DB account

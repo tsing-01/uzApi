@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/uzapi/internal/domain"
-	"github.com/uzapi/internal/pkg/logger"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/uzapi/internal/domain"
+	"github.com/uzapi/internal/pkg/logger"
 )
 
 const defaultBedrockRegion = "us-east-1"

@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/apikey"
 	"github.com/uzapi/ent/schema/mixins"
 	"github.com/uzapi/ent/usersubscription"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/require"
 )
 
 func uniqueSoftDeleteValue(t *testing.T, prefix string) string {

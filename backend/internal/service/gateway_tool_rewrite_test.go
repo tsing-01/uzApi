@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/config"
 )
 
 func TestBuildDynamicToolMap_BelowThreshold(t *testing.T) {

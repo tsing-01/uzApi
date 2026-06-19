@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/pagination"
 )
 
 type accountRepoStubForBulkUpdate struct {

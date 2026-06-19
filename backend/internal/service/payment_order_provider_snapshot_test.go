@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/uzapi/internal/payment"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/payment"
 )
 
 func TestBuildPaymentOrderProviderSnapshot_ExcludesSensitiveConfig(t *testing.T) {

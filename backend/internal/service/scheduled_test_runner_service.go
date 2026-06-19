@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/robfig/cron/v3"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/logger"
-	"github.com/robfig/cron/v3"
 )
 
 const scheduledTestDefaultMaxWorkers = 10

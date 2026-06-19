@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
+	"github.com/uzapi/internal/config"
 )
 
 var ErrUpstreamResponseBodyTooLarge = errors.New("upstream response body too large")

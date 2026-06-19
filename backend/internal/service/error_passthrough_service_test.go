@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/model"
 )
 
 // mockErrorPassthroughRepo 用于测试的 mock repository

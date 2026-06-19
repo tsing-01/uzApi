@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/uzapi/internal/domain"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/domain"
 )
 
 func mustParseSessionHashRequest(t *testing.T, body string, ctx *SessionContext) *ParsedRequest {

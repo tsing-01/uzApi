@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/config"
 )
 
 const (

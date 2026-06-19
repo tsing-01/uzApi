@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
-	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/pkg/pagination"
 )
 
 type authRepoStub struct {

@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
 )
 
 // dingtalkSettingsRepoStub 复用 settingHandlerRepoStub（已在 setting_handler_auth_source_defaults_test.go 定义）

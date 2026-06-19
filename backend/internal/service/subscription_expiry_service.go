@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/google/uuid"
+	"github.com/uzapi/internal/pkg/pagination"
 )
 
 const (

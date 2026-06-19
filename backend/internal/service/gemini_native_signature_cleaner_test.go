@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/uzapi/internal/pkg/antigravity"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/antigravity"
 )
 
 func TestCleanGeminiNativeThoughtSignatures_ReplacesNestedThoughtSignatures(t *testing.T) {

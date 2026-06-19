@@ -14,6 +14,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/stretchr/testify/require"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/authidentity"
 	"github.com/uzapi/ent/identityadoptiondecision"
@@ -22,9 +25,6 @@ import (
 	"github.com/uzapi/internal/config"
 	servermiddleware "github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/stretchr/testify/require"
 )
 
 func TestOIDCSyntheticEmailStableAndDistinct(t *testing.T) {

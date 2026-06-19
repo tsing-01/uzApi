@@ -5,8 +5,8 @@ package service
 import (
 	"bytes"
 	"context"
-	"github.com/uzapi/internal/pkg/tlsfingerprint"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/tlsfingerprint"
 	"io"
 	"net/http"
 	"strings"

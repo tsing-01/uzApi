@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 
 	_ "github.com/lib/pq"
 )

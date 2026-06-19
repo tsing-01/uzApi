@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 // TestAllowUserViewErrorRequests_PersistsToDB 验证 buildSystemSettingsUpdates 会将

@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"github.com/redis/go-redis/v9"
 	"github.com/uzapi/ent"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/handler"
@@ -17,7 +18,6 @@ import (
 	"github.com/uzapi/internal/server"
 	"github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"sync"

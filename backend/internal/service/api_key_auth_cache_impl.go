@@ -10,8 +10,8 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/dgraph-io/ristretto"
+	"github.com/uzapi/internal/config"
 )
 
 const apiKeyAuthSnapshotVersion = 11 // v11: reload snapshots for custom models_list_config

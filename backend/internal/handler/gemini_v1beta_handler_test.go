@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/uzapi/internal/service"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/service"
 )
 
 // TestGeminiV1BetaHandler_PlatformRoutingInvariant 文档化并验证 Handler 层的平台路由逻辑不变量

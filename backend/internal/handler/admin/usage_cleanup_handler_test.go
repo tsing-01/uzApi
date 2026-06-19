@@ -12,14 +12,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/handler/dto"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
 )
 
 type cleanupRepoStub struct {

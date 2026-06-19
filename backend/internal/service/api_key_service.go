@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dgraph-io/ristretto"
 	"github.com/uzapi/internal/config"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/pkg/ip"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/pkg/timezone"
-	"github.com/dgraph-io/ristretto"
 	"golang.org/x/sync/singleflight"
 )
 

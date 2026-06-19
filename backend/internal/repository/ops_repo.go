@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/lib/pq"
+	"github.com/uzapi/internal/service"
 )
 
 type opsRepository struct {

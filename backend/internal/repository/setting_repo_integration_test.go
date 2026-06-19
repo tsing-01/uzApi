@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/uzapi/internal/service"
 	"github.com/stretchr/testify/suite"
+	"github.com/uzapi/internal/service"
 )
 
 type SettingRepoSuite struct {

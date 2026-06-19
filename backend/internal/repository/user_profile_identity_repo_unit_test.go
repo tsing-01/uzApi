@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/authidentity"
 	"github.com/uzapi/ent/authidentitychannel"
 	"github.com/uzapi/ent/identityadoptiondecision"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/require"
 )
 
 func TestUserRepositoryBindAuthIdentityToUserCanonicalizesLegacyWeChatAlias(t *testing.T) {

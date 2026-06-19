@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSchedulerSnapshotOutboxReplay(t *testing.T) {

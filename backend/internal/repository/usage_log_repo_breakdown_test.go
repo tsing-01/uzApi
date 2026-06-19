@@ -5,8 +5,8 @@ package repository
 import (
 	"testing"
 
-	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/usagestats"
 )
 
 func TestResolveEndpointColumn(t *testing.T) {

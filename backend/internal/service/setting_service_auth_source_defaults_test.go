@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 type authSourceDefaultsRepoStub struct {

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/pagination"
-	"github.com/stretchr/testify/require"
 )
 
 type redeemCodeRepoStub struct {

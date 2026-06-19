@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/uzapi/internal/payment"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/uzapi/internal/payment"
 )
 
 const (

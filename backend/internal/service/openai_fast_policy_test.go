@@ -6,9 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/config"
 )
 
 type openAIFastPolicyRepoStub struct {

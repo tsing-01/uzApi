@@ -17,14 +17,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/claude"
 	"github.com/uzapi/internal/pkg/geminicli"
 	"github.com/uzapi/internal/pkg/openai"
 	"github.com/uzapi/internal/pkg/openai_compat"
 	"github.com/uzapi/internal/util/urlvalidator"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // sseDataPrefix matches SSE data lines with optional whitespace after colon.

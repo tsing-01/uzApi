@@ -3,10 +3,10 @@ package admin
 import (
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uzapi/internal/model"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 // ErrorPassthroughHandler 处理错误透传规则的 HTTP 请求

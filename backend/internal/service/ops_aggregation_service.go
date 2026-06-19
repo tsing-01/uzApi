@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/uzapi/internal/config"
-	"github.com/uzapi/internal/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/pkg/logger"
 )
 
 const (

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
+	"github.com/uzapi/internal/service"
 )
 
 const stickySessionPrefix = "sticky_session:"

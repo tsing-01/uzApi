@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 type fakeQuotaRepoForAdmin struct {

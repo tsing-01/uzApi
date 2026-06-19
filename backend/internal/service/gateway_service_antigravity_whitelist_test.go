@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/uzapi/internal/pkg/ctxkey"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/ctxkey"
 )
 
 func TestGatewayService_isModelSupportedByAccount_AntigravityModelMapping(t *testing.T) {

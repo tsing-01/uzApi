@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
+	"github.com/uzapi/internal/service"
 )
 
 // Redis Key 模式（使用 hash tag 确保 Redis Cluster 下同一 accountID 的 key 落入同一 slot）

@@ -8,12 +8,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/lib/pq"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/group"
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/service"
-	"github.com/lib/pq"
 
 	entsql "entgo.io/ent/dialect/sql"
 )

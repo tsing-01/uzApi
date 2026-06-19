@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/internal/pkg/timezone"
-	"github.com/lib/pq"
 )
 
 // UserPlatformQuotaRecord 是 repository 层的传输结构体，

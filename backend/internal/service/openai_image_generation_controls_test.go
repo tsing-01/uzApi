@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/config"
 )
 
 func TestOpenAIGatewayServiceForward_RejectsDisabledImageGenerationIntents(t *testing.T) {

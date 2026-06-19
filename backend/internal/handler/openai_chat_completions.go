@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 	pkghttputil "github.com/uzapi/internal/pkg/httputil"
 	"github.com/uzapi/internal/pkg/ip"
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/pkg/openai_compat"
 	middleware2 "github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 

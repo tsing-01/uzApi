@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/uzapi/internal/service"
 )
 
 type EmailCacheSuite struct {

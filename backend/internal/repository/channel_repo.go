@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/lib/pq"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/service"
-	"github.com/lib/pq"
 )
 
 type channelRepository struct {

@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 // TestDingTalkOAuthStart_Disabled は sentinel テスト。

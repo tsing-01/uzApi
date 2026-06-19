@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/service"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/uzapi/internal/service"
 )
 
 type TurnstileServiceSuite struct {

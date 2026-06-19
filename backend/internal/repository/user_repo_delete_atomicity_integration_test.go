@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/require"
 )
 
 // TestUserRepository_DeleteUser_AtomicWithAPIKeys 复现 AdminService.DeleteUser 的事务编排场景：

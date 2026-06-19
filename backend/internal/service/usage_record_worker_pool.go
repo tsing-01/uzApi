@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/alitto/pond/v2"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/logger"
-	"github.com/alitto/pond/v2"
 	"go.uber.org/zap"
 )
 

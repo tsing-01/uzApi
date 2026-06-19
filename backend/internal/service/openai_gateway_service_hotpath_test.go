@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/config"
 )
 
 func TestOpenAIRequestView_ExtractsRawScalars(t *testing.T) {

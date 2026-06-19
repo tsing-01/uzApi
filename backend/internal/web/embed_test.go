@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/server/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/server/middleware"
 )
 
 func init() {

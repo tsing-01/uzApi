@@ -12,10 +12,10 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	_ "modernc.org/sqlite"
 
+	"github.com/stretchr/testify/require"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/ent/enttest"
 	"github.com/uzapi/internal/payment"
-	"github.com/stretchr/testify/require"
 )
 
 // newOrderNotFoundTestClient wires an in-memory sqlite-backed ent.Client so

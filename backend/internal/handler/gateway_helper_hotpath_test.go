@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/service"
 )
 
 type helperConcurrencyCacheStub struct {

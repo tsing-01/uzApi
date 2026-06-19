@@ -3,8 +3,8 @@ package service
 import (
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestOpenAIWSProtocolResolver_Resolve(t *testing.T) {

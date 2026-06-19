@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uzapi/internal/pkg/logger"
-	"github.com/uzapi/internal/pkg/openai"
-	"github.com/uzapi/internal/util/responseheaders"
 	coderws "github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/uzapi/internal/pkg/logger"
+	"github.com/uzapi/internal/pkg/openai"
+	"github.com/uzapi/internal/util/responseheaders"
 	"go.uber.org/zap"
 )
 

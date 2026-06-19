@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/service"
 )
 
 // stubJWTUserRepo 实现 UserRepository 的最小子集，仅支持 GetByID。

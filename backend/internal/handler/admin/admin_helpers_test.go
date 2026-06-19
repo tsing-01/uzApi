@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/handler/dto"
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/handler/dto"
+	"github.com/uzapi/internal/service"
 )
 
 func TestParseTimeRange(t *testing.T) {

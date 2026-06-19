@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
+	"github.com/uzapi/internal/service"
 )
 
 const contentModerationFlaggedHashSetKey = "content_moderation:flagged_hashes"

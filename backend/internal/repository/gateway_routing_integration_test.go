@@ -6,9 +6,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/suite"
 )
 
 // GatewayRoutingSuite 测试网关路由相关的数据库查询

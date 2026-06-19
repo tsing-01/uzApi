@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/uzapi/internal/service"
 	"github.com/lib/pq"
+	"github.com/uzapi/internal/service"
 )
 
 // --- 模型定价 ---

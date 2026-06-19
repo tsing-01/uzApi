@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
+	"github.com/uzapi/internal/config"
 )
 
 var corsWarningOnce sync.Once

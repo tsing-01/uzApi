@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/logger"
-	"github.com/google/uuid"
 )
 
 const (

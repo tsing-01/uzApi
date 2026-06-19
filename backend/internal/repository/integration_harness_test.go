@@ -15,11 +15,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	dbent "github.com/uzapi/ent"
 	_ "github.com/uzapi/ent/runtime"
 	"github.com/uzapi/internal/pkg/timezone"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"

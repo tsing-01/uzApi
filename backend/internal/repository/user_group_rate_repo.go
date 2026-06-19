@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/lib/pq"
+	"github.com/uzapi/internal/service"
 )
 
 type userGroupRateRepository struct {

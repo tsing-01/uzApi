@@ -5,10 +5,10 @@ package repository
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/uzapi/internal/service"
-	"github.com/google/uuid"
 )
 
 func (s *UsageLogRepoSuite) TestListWithFilters_SortByModelAsc() {

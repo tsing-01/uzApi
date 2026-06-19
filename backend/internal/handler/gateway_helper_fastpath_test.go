@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/service"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/service"
 )
 
 type concurrencyCacheMock struct {

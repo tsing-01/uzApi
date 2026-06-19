@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/internal/payment"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidateRefundRequestRejectsLegacyGuessedProviderInstance(t *testing.T) {

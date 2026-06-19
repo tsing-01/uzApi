@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgraph-io/ristretto"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/internal/config"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/pkg/pagination"
-	"github.com/dgraph-io/ristretto"
 	"golang.org/x/sync/singleflight"
 )
 

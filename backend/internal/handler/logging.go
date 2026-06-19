@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/uzapi/internal/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/uzapi/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 

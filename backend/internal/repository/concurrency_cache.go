@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/uzapi/internal/service"
 	"github.com/redis/go-redis/v9"
+	"github.com/uzapi/internal/service"
 )
 
 // 并发控制缓存常量定义

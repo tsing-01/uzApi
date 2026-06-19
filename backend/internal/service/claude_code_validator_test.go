@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/uzapi/internal/pkg/ctxkey"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/ctxkey"
 )
 
 const claudeCodeMetadataUserIDJSON = `{"device_id":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef","account_uuid":"","session_id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}`

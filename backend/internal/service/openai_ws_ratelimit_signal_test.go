@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/pkg/pagination"
 	coderws "github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/pagination"
 )
 
 type openAIWSRateLimitSignalRepo struct {

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/pkg/openai"
 	"github.com/imroc/req/v3"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/openai"
 )
 
 type openaiOAuthClientRefreshStub struct {

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 type upstreamContextTestKey string

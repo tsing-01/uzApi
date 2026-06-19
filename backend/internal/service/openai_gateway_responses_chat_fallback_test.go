@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/pkg/openai_compat"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/pkg/openai_compat"
 )
 
 func TestForwardResponses_ForceChatCompletionsRoutesNonStreamingToChatCompletions(t *testing.T) {

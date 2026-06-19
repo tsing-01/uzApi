@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uzapi/internal/pkg/openai"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 const codexImportClockSkewSeconds int64 = 120

@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
+	gocache "github.com/patrickmn/go-cache"
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/ctxkey"
 	"github.com/uzapi/internal/pkg/usagestats"
-	gocache "github.com/patrickmn/go-cache"
-	"github.com/stretchr/testify/require"
 )
 
 type userGroupRateRepoHotpathStub struct {

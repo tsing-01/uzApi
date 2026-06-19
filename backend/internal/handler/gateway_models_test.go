@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	middleware2 "github.com/uzapi/internal/server/middleware"
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	middleware2 "github.com/uzapi/internal/server/middleware"
+	"github.com/uzapi/internal/service"
 )
 
 type gatewayModelsAccountRepoStub struct {

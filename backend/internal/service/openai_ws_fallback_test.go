@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	coderws "github.com/coder/websocket"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestClassifyOpenAIWSAcquireError(t *testing.T) {

@@ -10,11 +10,11 @@ import (
 
 	"log/slog"
 
+	"github.com/gin-gonic/gin"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/pkg/openai"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 const (

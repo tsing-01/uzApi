@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/stretchr/testify/require"
+	infraerrors "github.com/uzapi/internal/pkg/errors"
 )
 
 func TestDataManagementService_DeprecatedRPCMethods(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/uzapi/internal/service"
-	"github.com/stretchr/testify/require"
 )
 
 func TestUsageLog_GetStatsWithFilters_AggregatesAndEndpoints(t *testing.T) {

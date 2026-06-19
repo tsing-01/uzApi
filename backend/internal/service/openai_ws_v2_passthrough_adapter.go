@@ -9,12 +9,12 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/uzapi/internal/pkg/logger"
-	"github.com/uzapi/internal/pkg/openai"
-	openaiwsv2 "github.com/uzapi/internal/service/openai_ws_v2"
 	coderws "github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/pkg/logger"
+	"github.com/uzapi/internal/pkg/openai"
+	openaiwsv2 "github.com/uzapi/internal/service/openai_ws_v2"
 )
 
 type openAIWSClientFrameConn struct {

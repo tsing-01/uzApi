@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/antigravity"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
-	"github.com/stretchr/testify/require"
 )
 
 type settingUpdateRepoStub struct {

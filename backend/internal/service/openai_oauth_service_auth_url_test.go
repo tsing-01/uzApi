@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/uzapi/internal/pkg/openai"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/openai"
 )
 
 type openaiOAuthClientAuthURLStub struct{}

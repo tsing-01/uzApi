@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/uzapi/internal/model"
 	"github.com/uzapi/internal/service"
-	"github.com/redis/go-redis/v9"
 )
 
 const (

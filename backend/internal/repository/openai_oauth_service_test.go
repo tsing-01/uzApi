@@ -8,10 +8,10 @@ import (
 	"net/url"
 	"testing"
 
-	infraerrors "github.com/uzapi/internal/pkg/errors"
-	"github.com/uzapi/internal/pkg/openai"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	infraerrors "github.com/uzapi/internal/pkg/errors"
+	"github.com/uzapi/internal/pkg/openai"
 )
 
 type OpenAIOAuthServiceSuite struct {

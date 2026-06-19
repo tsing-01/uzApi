@@ -7,8 +7,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestAdminService_CreateUser_Success(t *testing.T) {

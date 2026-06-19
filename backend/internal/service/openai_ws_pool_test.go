@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestOpenAIWSConnPool_CleanupStaleAndTrimIdle(t *testing.T) {

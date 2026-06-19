@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/logger"
 )
 
 var handlerStructuredLogCaptureMu sync.Mutex

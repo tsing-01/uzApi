@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/pkg/pagination"
-	"github.com/stretchr/testify/require"
 )
 
 type groupRepoNoop struct{}

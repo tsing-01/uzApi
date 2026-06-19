@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestOpenAI429FastPath_MarksOAuthAccountCoolingDown(t *testing.T) {

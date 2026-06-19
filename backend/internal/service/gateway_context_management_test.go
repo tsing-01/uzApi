@@ -11,11 +11,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/uzapi/internal/config"
-	"github.com/uzapi/internal/pkg/claude"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"github.com/uzapi/internal/config"
+	"github.com/uzapi/internal/pkg/claude"
 )
 
 // ============================================================================

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/uzapi/internal/pkg/logger"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/uzapi/internal/pkg/logger"
 )
 
 // codexToolNameMapping 定义 Codex 原生工具名称到 OpenCode 工具名称的映射

@@ -7,9 +7,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/imroc/req/v3"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestAdminService_EnsureOpenAIPrivacy_RetriesNonSuccessModes(t *testing.T) {

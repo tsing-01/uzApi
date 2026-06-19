@@ -25,6 +25,11 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/cespare/xxhash/v2"
+	"github.com/google/uuid"
+	gocache "github.com/patrickmn/go-cache"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/uzapi/internal/config"
 	"github.com/uzapi/internal/pkg/claude"
 	"github.com/uzapi/internal/pkg/ctxkey"
@@ -32,11 +37,6 @@ import (
 	"github.com/uzapi/internal/pkg/usagestats"
 	"github.com/uzapi/internal/util/responseheaders"
 	"github.com/uzapi/internal/util/urlvalidator"
-	"github.com/cespare/xxhash/v2"
-	"github.com/google/uuid"
-	gocache "github.com/patrickmn/go-cache"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 	"golang.org/x/sync/singleflight"
 
 	"github.com/gin-gonic/gin"

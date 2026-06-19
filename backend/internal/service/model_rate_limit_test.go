@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/pkg/ctxkey"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/ctxkey"
 )
 
 func TestIsModelRateLimited(t *testing.T) {

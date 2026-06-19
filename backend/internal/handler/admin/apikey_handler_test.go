@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	infraerrors "github.com/uzapi/internal/pkg/errors"
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	infraerrors "github.com/uzapi/internal/pkg/errors"
+	"github.com/uzapi/internal/service"
 )
 
 func setupAPIKeyHandler(adminSvc service.AdminService) *gin.Engine {

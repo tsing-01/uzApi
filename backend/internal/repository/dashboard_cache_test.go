@@ -3,8 +3,8 @@ package repository
 import (
 	"testing"
 
-	"github.com/uzapi/internal/config"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/config"
 )
 
 func TestNewDashboardCacheKeyPrefix(t *testing.T) {

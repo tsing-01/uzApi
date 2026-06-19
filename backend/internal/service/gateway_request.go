@@ -10,11 +10,11 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/uzapi/internal/domain"
 	"github.com/uzapi/internal/pkg/antigravity"
 	"github.com/uzapi/internal/pkg/logger"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 var (

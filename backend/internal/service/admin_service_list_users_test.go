@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/uzapi/internal/pkg/pagination"
 	"github.com/stretchr/testify/require"
+	"github.com/uzapi/internal/pkg/pagination"
 )
 
 type userRepoStubForListUsers struct {
