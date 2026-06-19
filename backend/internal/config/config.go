@@ -577,6 +577,7 @@ type SecurityConfig struct {
 	URLAllowlist                     URLAllowlistConfig   `mapstructure:"url_allowlist"`
 	ResponseHeaders                  ResponseHeaderConfig `mapstructure:"response_headers"`
 	CSP                              CSPConfig            `mapstructure:"csp"`
+	CSRF                             CSRFConfig           `mapstructure:"csrf"`
 	ProxyFallback                    ProxyFallbackConfig  `mapstructure:"proxy_fallback"`
 	ProxyProbe                       ProxyProbeConfig     `mapstructure:"proxy_probe"`
 	TrustForwardedIPForAPIKeyACL     bool                 `mapstructure:"trust_forwarded_ip_for_api_key_acl"`
@@ -624,6 +625,10 @@ type ResponseHeaderConfig struct {
 type CSPConfig struct {
 	Enabled bool   `mapstructure:"enabled"`
 	Policy  string `mapstructure:"policy"`
+}
+
+type CSRFConfig struct {
+	Enabled bool `mapstructure:"enabled"`
 }
 
 type ProxyFallbackConfig struct {
@@ -1596,6 +1601,7 @@ func setDefaults() {
 	viper.SetDefault("security.response_headers.force_remove", []string{})
 	viper.SetDefault("security.csp.enabled", true)
 	viper.SetDefault("security.csp.policy", DefaultCSPPolicy)
+	viper.SetDefault("security.csrf.enabled", true)
 	viper.SetDefault("security.proxy_probe.insecure_skip_verify", false)
 	viper.SetDefault("security.trust_forwarded_ip_for_api_key_acl", false)
 

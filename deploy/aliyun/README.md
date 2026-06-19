@@ -10,7 +10,7 @@
 - 系统：Ubuntu 22.04 LTS 或 Alibaba Cloud Linux。
 - 规格：起步 2C4G，正式建议 4C8G。
 - 安全组：开放 80、443；SSH 22 只允许你自己的 IP。
-- 域名：先把 `api.yourdomain.com` A 记录解析到 ECS 公网 IP。没有域名时先用 `DOMAIN=:80` 测试。
+- 域名：先把 `api.uzapi.org` A 记录解析到 ECS 公网 IP。没有域名时先用 `DOMAIN=:80` 测试。
 
 首次登录 ECS 后执行：
 
@@ -29,7 +29,7 @@ vi deploy/aliyun/.env.production
 
 至少必须修改：
 
-- `DOMAIN`：有域名填 `api.yourdomain.com`，无域名先填 `:80`
+- `DOMAIN`：有域名填 `api.uzapi.org`，无域名先填 `:80`
 - `DATABASE_PASSWORD`
 - `REDIS_PASSWORD`
 - `ADMIN_EMAIL`
@@ -58,7 +58,7 @@ docker compose --env-file deploy/aliyun/.env.production -f deploy/aliyun/docker-
 curl -i http://127.0.0.1/health
 ```
 
-如果 `DOMAIN=api.yourdomain.com` 且 DNS 已指向 ECS，Caddy 会自动申请 HTTPS 证书。
+如果 `DOMAIN=api.uzapi.org` 且 DNS 已指向 ECS，Caddy 会自动申请 HTTPS 证书。
 
 ## 4. GitHub Actions 自动部署
 

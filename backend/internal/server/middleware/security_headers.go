@@ -7,8 +7,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/uzapi/internal/config"
 	"github.com/gin-gonic/gin"
+	"github.com/uzapi/internal/config"
 )
 
 const (
@@ -94,6 +94,8 @@ func SecurityHeaders(cfg config.CSPConfig, getFrameSrcOrigins func() []string) g
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")
 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+		c.Header("X-XSS-Protection", "0")
+		c.Header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)")
 		if isAPIRoutePath(c) {
 			c.Next()
 			return

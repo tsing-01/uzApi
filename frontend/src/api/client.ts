@@ -11,6 +11,30 @@ import { getLocale } from '@/i18n'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
+const CSRF_COOKIE_NAME = 'csrf_token'
+const CSRF_HEADER_NAME = 'X-CSRF-Token'
+
+function readCookie(name: string): string {
+  if (typeof document === 'undefined') return ''
+  const prefix = `${name}=`
+  const item = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix))
+  return item ? decodeURIComponent(item.slice(prefix.length)) : ''
+}
+
+function isUnsafeMethod(method?: string): boolean {
+  const normalized = (method || 'get').toLowerCase()
+  return ['post', 'put', 'patch', 'delete'].includes(normalized)
+}
+
+function csrfHeader(): Record<string, string> {
+  const token = readCookie(CSRF_COOKIE_NAME)
+  return token ? { [CSRF_HEADER_NAME]: token } : {}
+}
+
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -64,6 +88,14 @@ apiClient.interceptors.request.use(
     // Attach locale for backend translations
     if (config.headers) {
       config.headers['Accept-Language'] = getLocale()
+    }
+
+    // Attach CSRF token for browser-originated unsafe requests.
+    if (config.headers && isUnsafeMethod(config.method)) {
+      const token = readCookie(CSRF_COOKIE_NAME)
+      if (token) {
+        config.headers[CSRF_HEADER_NAME] = token
+      }
     }
 
     // Attach timezone for all GET requests (backend may use it for default date ranges)
@@ -188,7 +220,7 @@ apiClient.interceptors.response.use(
             const refreshResponse = await axios.post(
               `${API_BASE_URL}/auth/refresh`,
               { refresh_token: refreshToken },
-              { headers: { 'Content-Type': 'application/json' } }
+              { headers: { 'Content-Type': 'application/json', ...csrfHeader() }, withCredentials: true }
             )
 
             const refreshData = refreshResponse.data as ApiResponse<{
