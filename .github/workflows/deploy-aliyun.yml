@@ -84,4 +84,4 @@ jobs:
           ALIYUN_PORT: ${{ secrets.ALIYUN_PORT || '22' }}
           ALIYUN_APP_DIR: ${{ secrets.ALIYUN_APP_DIR || '/opt/uzapi' }}
         run: |
-          ssh -i ~/.ssh/aliyun_key -p "$ALIYUN_PORT" "$ALIYUN_USER@$ALIYUN_HOST" "cd '$ALIYUN_APP_DIR' && chmod +x scripts/aliyun-deploy.sh scripts/backup-db.sh && ./scripts/aliyun-deploy.sh"
+          ssh -i ~/.ssh/aliyun_key -p "$ALIYUN_PORT" "$ALIYUN_USER@$ALIYUN_HOST" "cd '$ALIYUN_APP_DIR' && test -f scripts/aliyun-deploy.sh && chmod +x scripts/aliyun-deploy.sh && if [ -f scripts/backup-db.sh ]; then chmod +x scripts/backup-db.sh; fi && ./scripts/aliyun-deploy.sh"
