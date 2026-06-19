@@ -28,8 +28,11 @@ fi
 
 mkdir -p "$BACKUP_DIR"
 
-echo "==> Building and starting uzApi"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --build --remove-orphans
+echo "==> Pulling uzApi image"
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull uzapi
+
+echo "==> Starting uzApi"
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --no-build --remove-orphans
 
 echo "==> Waiting for health check"
 for i in $(seq 1 60); do

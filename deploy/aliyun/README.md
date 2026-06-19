@@ -1,6 +1,6 @@
 # uzApi 阿里云 ECS 部署说明
 
-这套配置的目标是：你 push 到 `master` 后，GitHub Actions 自动构建检查，通过后把当前仓库同步到阿里云 ECS，并执行 Docker Compose 部署。
+这套配置的目标是：你 push 到 `master` 后，GitHub Actions 构建并推送 Docker 镜像到 GHCR，再把部署文件同步到阿里云 ECS，由 ECS 拉取镜像并执行 Docker Compose 部署。
 
 ## 1. 阿里云侧准备
 
@@ -45,6 +45,8 @@ openssl rand -hex 32
 
 你的 OpenAI API Key 通常在后台账号/渠道里配置，不建议写进 `.env.production`。
 
+`APP_IMAGE` / `APP_IMAGE_TAG` 在 GitHub Actions 自动部署时会被当前 commit 的 GHCR 镜像覆盖。手动部署时如果使用私有 GHCR 包，需要先在 ECS 上执行 `docker login ghcr.io`，或把 GHCR package 设为公开可拉取。
+
 ## 3. 手动部署一次
 
 ```bash
@@ -71,6 +73,8 @@ curl -i http://127.0.0.1/health
 | `ALIYUN_PORT` | `22` | SSH 端口，默认 22 |
 | `ALIYUN_SSH_KEY` | 私钥全文 | 能登录 ECS 的私钥 |
 | `ALIYUN_APP_DIR` | `/opt/uzapi` | ECS 上项目部署目录，默认 `/opt/uzapi` |
+| `GHCR_USERNAME` | `your-github-user` | 可选，私有 GHCR 包拉取用户名 |
+| `GHCR_TOKEN` | `ghp_xxx` | 可选，私有 GHCR 包拉取 token，需 `read:packages` |
 
 随后 push 到 `master`：
 
@@ -80,10 +84,11 @@ git push origin master
 
 workflow 会：
 
-1. Docker build 检查前后端能否完整构建。
-2. 把仓库快照同步到 ECS。
+1. 在 GitHub Actions runner 上构建 Docker 镜像。
+2. 推送镜像到 GHCR，标签为当前 commit SHA 和 `aliyun-latest`。
+3. 把仓库快照同步到 ECS。
 3. 在 ECS 上执行 `scripts/aliyun-deploy.sh`。
-4. 重建并重启服务。
+4. ECS 拉取指定镜像并重启服务，不在 ECS 上 build。
 5. 等待 `/health` 通过。
 
 ## 5. 数据备份

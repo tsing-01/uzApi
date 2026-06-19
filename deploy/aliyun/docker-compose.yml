@@ -4,12 +4,6 @@
 
 services:
   uzapi:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
-      args:
-        GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
-        GOSUMDB: ${GOSUMDB:-sum.golang.google.cn}
     image: ${APP_IMAGE:-uzapi/uzapi}:${APP_IMAGE_TAG:-aliyun-latest}
     container_name: uzapi-app
     restart: unless-stopped
