@@ -3,8 +3,8 @@ package handler
 import (
 	"strings"
 
-	"github.com/uzapi/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/uzapi/internal/service"
 )
 
 // ──────────────────────────────────────────────────────────

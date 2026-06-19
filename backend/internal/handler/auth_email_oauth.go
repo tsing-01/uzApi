@@ -9,15 +9,15 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+	"github.com/imroc/req/v3"
+	"github.com/tidwall/gjson"
 	dbent "github.com/uzapi/ent"
 	"github.com/uzapi/internal/config"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/pkg/oauth"
 	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/imroc/req/v3"
-	"github.com/tidwall/gjson"
 )
 
 const (

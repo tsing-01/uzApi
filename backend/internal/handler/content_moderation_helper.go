@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uzapi/internal/pkg/ctxkey"
 	middleware2 "github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
