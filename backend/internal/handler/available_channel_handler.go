@@ -39,11 +39,6 @@ func NewAvailableChannelHandler(
 	}
 }
 
-// featureEnabled 返回 available-channels 开关是否启用。默认关闭（opt-in）。
-func (h *AvailableChannelHandler) featureEnabled(c *gin.Context) bool {
-	return h.availableChannelsRuntime(c).Enabled
-}
-
 func (h *AvailableChannelHandler) availableChannelsRuntime(c *gin.Context) service.AvailableChannelsRuntime {
 	if h.settingService == nil {
 		return service.AvailableChannelsRuntime{Enabled: false, PricingProfitMultiplier: 1}

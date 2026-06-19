@@ -674,6 +674,10 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
+	if req.PricingProfitMultiplier != nil && *req.PricingProfitMultiplier <= 0 {
+		response.BadRequest(c, "pricing_profit_multiplier must be greater than 0")
+		return
+	}
 
 	previousSettings, err := h.settingService.GetAllSettings(c.Request.Context())
 	if err != nil {

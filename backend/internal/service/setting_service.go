@@ -1893,10 +1893,14 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 
 	// Available channels feature switch
 	updates[SettingKeyAvailableChannelsEnabled] = strconv.FormatBool(settings.AvailableChannelsEnabled)
-	if settings.PricingProfitMultiplier <= 0 {
+	pricingProfitMultiplier := settings.PricingProfitMultiplier
+	if pricingProfitMultiplier == 0 {
+		pricingProfitMultiplier = 1
+	}
+	if pricingProfitMultiplier < 0 {
 		return nil, infraerrors.BadRequest("INVALID_PRICING_PROFIT_MULTIPLIER", "pricing profit multiplier must be greater than 0")
 	}
-	updates[SettingKeyPricingProfitMultiplier] = strconv.FormatFloat(settings.PricingProfitMultiplier, 'f', 6, 64)
+	updates[SettingKeyPricingProfitMultiplier] = strconv.FormatFloat(pricingProfitMultiplier, 'f', 6, 64)
 
 	// Affiliate (邀请返利) feature switch
 	updates[SettingKeyAffiliateEnabled] = strconv.FormatBool(settings.AffiliateEnabled)

@@ -23,7 +23,16 @@ func TestGeminiOAuthService_GenerateAuthURL_RedirectURIStrategy(t *testing.T) {
 	// NOTE: This test sets process env; it must not run in parallel.
 	// The built-in Gemini CLI client secret is not embedded in this repository.
 	// Tests set a dummy secret via env to simulate operator-provided configuration.
+	t.Setenv(geminicli.GeminiCLIOAuthClientIDEnv, "test-built-in-client-id")
 	t.Setenv(geminicli.GeminiCLIOAuthClientSecretEnv, "test-built-in-secret")
+	originalClientID := geminicli.GeminiCLIOAuthClientID
+	originalClientSecret := geminicli.GeminiCLIOAuthClientSecret
+	geminicli.GeminiCLIOAuthClientID = "test-built-in-client-id"
+	geminicli.GeminiCLIOAuthClientSecret = "test-built-in-secret"
+	t.Cleanup(func() {
+		geminicli.GeminiCLIOAuthClientID = originalClientID
+		geminicli.GeminiCLIOAuthClientSecret = originalClientSecret
+	})
 
 	type testCase struct {
 		name          string
