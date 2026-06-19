@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/uzapi/internal/domain"
 	"github.com/uzapi/internal/pkg/antigravity"
 	"github.com/uzapi/internal/pkg/gemini"
@@ -21,7 +22,6 @@ import (
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
-	"github.com/google/uuid"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
