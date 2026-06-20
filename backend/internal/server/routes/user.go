@@ -78,6 +78,12 @@ func RegisterUserRoutes(
 			channels.GET("/available", h.AvailableChannel.List)
 		}
 
+		// 第三方用户中心聚合接口
+		integration := authenticated.Group("/integration")
+		{
+			integration.GET("/me", h.Integration.Me)
+		}
+
 		// 使用记录
 		usage := authenticated.Group("/usage")
 		{

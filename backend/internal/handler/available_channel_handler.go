@@ -119,33 +119,38 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 		return
 	}
 
+	out, err := h.listForUser(c, subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, out)
+}
+
+func (h *AvailableChannelHandler) listForUser(c *gin.Context, userID int64) ([]userAvailableChannel, error) {
 	// Feature 未启用时返回空数组（不暴露渠道信息）。检查放在认证之后，
 	// 保持与未开关前的 401 行为一致：未登录先 401，登录后再按开关决定。
 	runtime := h.availableChannelsRuntime(c)
 	if !runtime.Enabled {
-		response.Success(c, []userAvailableChannel{})
-		return
+		return []userAvailableChannel{}, nil
 	}
 
-	userGroups, err := h.apiKeyService.GetAvailableGroups(c.Request.Context(), subject.UserID)
+	userGroups, err := h.apiKeyService.GetAvailableGroups(c.Request.Context(), userID)
 	if err != nil {
-		response.ErrorFrom(c, err)
-		return
+		return nil, err
 	}
 	allowedGroupIDs := make(map[int64]struct{}, len(userGroups))
 	for i := range userGroups {
 		allowedGroupIDs[userGroups[i].ID] = struct{}{}
 	}
-	userGroupRates, err := h.apiKeyService.GetUserGroupRates(c.Request.Context(), subject.UserID)
+	userGroupRates, err := h.apiKeyService.GetUserGroupRates(c.Request.Context(), userID)
 	if err != nil {
-		response.ErrorFrom(c, err)
-		return
+		return nil, err
 	}
 
 	channels, err := h.channelService.ListAvailable(c.Request.Context())
 	if err != nil {
-		response.ErrorFrom(c, err)
-		return
+		return nil, err
 	}
 
 	out := make([]userAvailableChannel, 0, len(channels))
@@ -168,7 +173,7 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 		})
 	}
 
-	response.Success(c, out)
+	return out, nil
 }
 
 // buildPlatformSections 把一个渠道按 visibleGroups 的平台集合拆成有序的 section 列表：
