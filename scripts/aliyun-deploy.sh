@@ -28,6 +28,11 @@ fi
 
 mkdir -p "$BACKUP_DIR"
 
+if [ -n "${APP_IMAGE_TAG:-}" ] && [ -z "${APP_IMAGE:-}" ]; then
+  echo "ERROR: APP_IMAGE_TAG is set but APP_IMAGE is empty; refusing to pull the default Docker Hub image." >&2
+  exit 1
+fi
+
 echo "==> Pulling uzApi image"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull --quiet uzapi
 

@@ -134,9 +134,9 @@ jobs:
           ALIYUN_USER: ${{ secrets.ALIYUN_USER || 'root' }}
           ALIYUN_PORT: ${{ secrets.ALIYUN_PORT || '22' }}
           ALIYUN_APP_DIR: ${{ secrets.ALIYUN_APP_DIR || '/opt/uzapi' }}
-          APP_IMAGE: ${{ needs.build.outputs.image }}
-          APP_IMAGE_TAG: ${{ needs.build.outputs.tag }}
+          APP_IMAGE_TAG: ${{ github.sha }}
           ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          ALIYUN_NAMESPACE: ${{ secrets.ALIYUN_NAMESPACE }}
           ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
           ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
@@ -144,8 +144,18 @@ jobs:
         run: |
           SSH_OPTS="-i ~/.ssh/aliyun_key -p $ALIYUN_PORT -o ServerAliveInterval=30 -o ServerAliveCountMax=10"
           REGISTRY="$ALIYUN_REGISTRY"
+          NAMESPACE="${ALIYUN_NAMESPACE:-uzapi}"
           USERNAME="$ALIYUN_USERNAME"
           PASSWORD="$ALIYUN_PASSWORD"
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          REPO_NAME="${REPO_NAME,,}"
+          if [ -n "$REGISTRY" ]; then
+            APP_IMAGE="${REGISTRY}/${NAMESPACE}/${REPO_NAME}"
+          else
+            APP_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          fi
+          test -n "$APP_IMAGE"
+          test -n "$APP_IMAGE_TAG"
           if [ -n "$REGISTRY" ] && [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
             printf '%s' "$PASSWORD" | ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "docker login '$REGISTRY' -u '$USERNAME' --password-stdin"
           elif [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
