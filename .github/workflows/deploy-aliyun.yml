@@ -43,6 +43,7 @@ jobs:
         id: image
         run: |
           REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          REPO_NAME="${REPO_NAME,,}"
           REGISTRY="$ALIYUN_REGISTRY"
           NAMESPACE="$ALIYUN_NAMESPACE"
           if [ -n "$REGISTRY" ]; then
