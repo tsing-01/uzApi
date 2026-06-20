@@ -18,6 +18,11 @@ jobs:
   build:
     name: Build and push Docker image
     runs-on: ubuntu-latest
+    env:
+      ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+      ALIYUN_NAMESPACE: ${{ secrets.ALIYUN_NAMESPACE }}
+      ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
+      ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
     outputs:
       image: ${{ steps.image.outputs.image }}
       tag: ${{ steps.image.outputs.tag }}
@@ -28,16 +33,39 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Validate Aliyun registry credentials
+        if: ${{ env.ALIYUN_REGISTRY != '' && (env.ALIYUN_USERNAME == '' || env.ALIYUN_PASSWORD == '') }}
+        run: |
+          echo "ALIYUN_REGISTRY is set, so ALIYUN_USERNAME and ALIYUN_PASSWORD are required."
+          exit 1
+
       - name: Set image metadata
         id: image
         run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          REGISTRY="$ALIYUN_REGISTRY"
+          NAMESPACE="$ALIYUN_NAMESPACE"
+          if [ -n "$REGISTRY" ]; then
+            NAMESPACE="${NAMESPACE:-uzapi}"
+            IMAGE="${REGISTRY}/${NAMESPACE}/${REPO_NAME}"
+          else
+            IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          fi
           TAG="${GITHUB_SHA}"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Using image: $IMAGE:$TAG"
 
+      - name: Login to Aliyun Container Registry
+        if: ${{ env.ALIYUN_REGISTRY != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY }}
+          username: ${{ env.ALIYUN_USERNAME }}
+          password: ${{ env.ALIYUN_PASSWORD }}
+
       - name: Login to GitHub Container Registry
+        if: ${{ env.ALIYUN_REGISTRY == '' }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -92,12 +120,11 @@ jobs:
           SSH_OPTS="-i ~/.ssh/aliyun_key -p $ALIYUN_PORT -o ServerAliveInterval=30 -o ServerAliveCountMax=10"
           ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "mkdir -p '$ALIYUN_APP_DIR'"
           tar \
-            --exclude='.git' \
-            --exclude='frontend/node_modules' \
-            --exclude='backend/bin' \
-            --exclude='deploy/postgres_data_local' \
             --exclude='deploy/aliyun/.env.production' \
-            -czf - . \
+            -czf - \
+            deploy/aliyun \
+            scripts/aliyun-deploy.sh \
+            scripts/backup-db.sh \
             | ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "tar -xzf - -C '$ALIYUN_APP_DIR'"
 
       - name: Deploy
@@ -108,11 +135,19 @@ jobs:
           ALIYUN_APP_DIR: ${{ secrets.ALIYUN_APP_DIR || '/opt/uzapi' }}
           APP_IMAGE: ${{ needs.build.outputs.image }}
           APP_IMAGE_TAG: ${{ needs.build.outputs.tag }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
+          ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           SSH_OPTS="-i ~/.ssh/aliyun_key -p $ALIYUN_PORT -o ServerAliveInterval=30 -o ServerAliveCountMax=10"
-          if [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
+          REGISTRY="$ALIYUN_REGISTRY"
+          USERNAME="$ALIYUN_USERNAME"
+          PASSWORD="$ALIYUN_PASSWORD"
+          if [ -n "$REGISTRY" ] && [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
+            printf '%s' "$PASSWORD" | ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "docker login '$REGISTRY' -u '$USERNAME' --password-stdin"
+          elif [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
             printf '%s' "$GHCR_TOKEN" | ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
           fi
           ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "cd '$ALIYUN_APP_DIR' && test -f scripts/aliyun-deploy.sh && chmod +x scripts/aliyun-deploy.sh && if [ -f scripts/backup-db.sh ]; then chmod +x scripts/backup-db.sh; fi && APP_IMAGE='$APP_IMAGE' APP_IMAGE_TAG='$APP_IMAGE_TAG' ./scripts/aliyun-deploy.sh"

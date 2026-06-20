@@ -29,7 +29,7 @@ fi
 mkdir -p "$BACKUP_DIR"
 
 echo "==> Pulling uzApi image"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull uzapi
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull --quiet uzapi
 
 echo "==> Starting uzApi"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --no-build --remove-orphans
