@@ -104,12 +104,27 @@ jobs:
           ALIYUN_HOST: ${{ secrets.ALIYUN_HOST }}
           ALIYUN_PORT: ${{ secrets.ALIYUN_PORT || '22' }}
         run: |
-          test -n "$ALIYUN_HOST"
-          test -n "$ALIYUN_SSH_KEY"
-          mkdir -p ~/.ssh
-          printf '%s\n' "$ALIYUN_SSH_KEY" > ~/.ssh/aliyun_key
+          if [ -z "$ALIYUN_HOST" ]; then
+            echo "ALIYUN_HOST secret is required."
+            exit 1
+          fi
+          if [ -z "$ALIYUN_SSH_KEY" ]; then
+            echo "ALIYUN_SSH_KEY secret is required."
+            exit 1
+          fi
+          if ! [[ "$ALIYUN_PORT" =~ ^[0-9]+$ ]]; then
+            echo "ALIYUN_PORT must be a numeric TCP port."
+            exit 1
+          fi
+
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$ALIYUN_SSH_KEY" | tr -d '\r' > ~/.ssh/aliyun_key
           chmod 600 ~/.ssh/aliyun_key
-          ssh-keyscan -p "$ALIYUN_PORT" -H "$ALIYUN_HOST" >> ~/.ssh/known_hosts
+          if ! ssh-keyscan -T 15 -p "$ALIYUN_PORT" -H "$ALIYUN_HOST" >> ~/.ssh/known_hosts; then
+            echo "Failed to scan SSH host key for $ALIYUN_HOST:$ALIYUN_PORT."
+            echo "Check ALIYUN_HOST, ALIYUN_PORT, ECS security group/firewall, and whether sshd is listening."
+            exit 1
+          fi
 
       - name: Upload repository snapshot
         env:
