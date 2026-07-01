@@ -25,6 +25,10 @@ const (
 	SettingBalancePayDisabled  = "BALANCE_PAYMENT_DISABLED"
 	SettingBalanceRechargeMult = "BALANCE_RECHARGE_MULTIPLIER"
 	SettingRechargeFeeRate     = "RECHARGE_FEE_RATE"
+	SettingBillingCurrency     = "BILLING_CURRENCY"
+	SettingPricingCurrency     = "PRICING_CURRENCY"
+	SettingUSDToCNYRate        = "USD_CNY_EXCHANGE_RATE"
+	SettingExchangeRateAuto    = "EXCHANGE_RATE_AUTO"
 	SettingProductNamePrefix   = "PRODUCT_NAME_PREFIX"
 	SettingProductNameSuffix   = "PRODUCT_NAME_SUFFIX"
 	SettingHelpImageURL        = "PAYMENT_HELP_IMAGE_URL"
@@ -41,6 +45,9 @@ const (
 const (
 	defaultOrderTimeoutMin  = 30
 	defaultMaxPendingOrders = 3
+	defaultBillingCurrency  = "CNY"
+	defaultPricingCurrency  = "USD"
+	defaultUSDToCNYRate     = 7.2
 )
 
 // PaymentConfig holds the payment system configuration.
@@ -55,6 +62,10 @@ type PaymentConfig struct {
 	BalanceDisabled           bool     `json:"balance_disabled"`
 	BalanceRechargeMultiplier float64  `json:"balance_recharge_multiplier"`
 	RechargeFeeRate           float64  `json:"recharge_fee_rate"`
+	BillingCurrency           string   `json:"billing_currency"`
+	PricingCurrency           string   `json:"pricing_currency"`
+	USDToCNYRate              float64  `json:"usd_cny_exchange_rate"`
+	ExchangeRateAuto          bool     `json:"exchange_rate_auto"`
 	LoadBalanceStrategy       string   `json:"load_balance_strategy"`
 	ProductNamePrefix         string   `json:"product_name_prefix"`
 	ProductNameSuffix         string   `json:"product_name_suffix"`
@@ -85,6 +96,10 @@ type UpdatePaymentConfigRequest struct {
 	BalanceDisabled           *bool    `json:"balance_disabled"`
 	BalanceRechargeMultiplier *float64 `json:"balance_recharge_multiplier"`
 	RechargeFeeRate           *float64 `json:"recharge_fee_rate"`
+	BillingCurrency           *string  `json:"billing_currency"`
+	PricingCurrency           *string  `json:"pricing_currency"`
+	USDToCNYRate              *float64 `json:"usd_cny_exchange_rate"`
+	ExchangeRateAuto          *bool    `json:"exchange_rate_auto"`
 	LoadBalanceStrategy       *string  `json:"load_balance_strategy"`
 	ProductNamePrefix         *string  `json:"product_name_prefix"`
 	ProductNameSuffix         *string  `json:"product_name_suffix"`
@@ -205,6 +220,7 @@ func (s *PaymentConfigService) GetPaymentConfig(ctx context.Context) (*PaymentCo
 		SettingPaymentEnabled, SettingMinRechargeAmount, SettingMaxRechargeAmount,
 		SettingDailyRechargeLimit, SettingOrderTimeoutMinutes, SettingMaxPendingOrders,
 		SettingEnabledPaymentTypes, SettingBalancePayDisabled, SettingBalanceRechargeMult, SettingRechargeFeeRate, SettingLoadBalanceStrategy,
+		SettingBillingCurrency, SettingPricingCurrency, SettingUSDToCNYRate, SettingExchangeRateAuto,
 		SettingProductNamePrefix, SettingProductNameSuffix,
 		SettingHelpImageURL, SettingHelpText,
 		SettingCancelRateLimitOn, SettingCancelRateLimitMax,
@@ -234,6 +250,10 @@ func (s *PaymentConfigService) parsePaymentConfig(vals map[string]string) *Payme
 		BalanceDisabled:           vals[SettingBalancePayDisabled] == "true",
 		BalanceRechargeMultiplier: normalizeBalanceRechargeMultiplier(pcParseFloat(vals[SettingBalanceRechargeMult], defaultBalanceRechargeMultiplier)),
 		RechargeFeeRate:           pcParseFloat(vals[SettingRechargeFeeRate], 0),
+		BillingCurrency:           normalizeCurrencyCode(vals[SettingBillingCurrency], defaultBillingCurrency),
+		PricingCurrency:           normalizeCurrencyCode(vals[SettingPricingCurrency], defaultPricingCurrency),
+		USDToCNYRate:              normalizeExchangeRate(pcParseFloat(vals[SettingUSDToCNYRate], defaultUSDToCNYRate)),
+		ExchangeRateAuto:          vals[SettingExchangeRateAuto] == "true",
 		LoadBalanceStrategy:       vals[SettingLoadBalanceStrategy],
 		ProductNamePrefix:         vals[SettingProductNamePrefix],
 		ProductNameSuffix:         vals[SettingProductNameSuffix],
@@ -304,6 +324,11 @@ func (s *PaymentConfigService) UpdatePaymentConfig(ctx context.Context, req Upda
 			return infraerrors.BadRequest("INVALID_RECHARGE_FEE_RATE", "recharge fee rate allows at most 2 decimal places")
 		}
 	}
+	if req.USDToCNYRate != nil {
+		if normalizeExchangeRate(*req.USDToCNYRate) != *req.USDToCNYRate {
+			return infraerrors.BadRequest("INVALID_EXCHANGE_RATE", "USD/CNY exchange rate must be greater than 0")
+		}
+	}
 	m := map[string]string{
 		SettingPaymentEnabled:                    formatBoolOrEmpty(req.Enabled),
 		SettingMinRechargeAmount:                 formatPositiveFloat(req.MinAmount),
@@ -314,6 +339,10 @@ func (s *PaymentConfigService) UpdatePaymentConfig(ctx context.Context, req Upda
 		SettingBalancePayDisabled:                formatBoolOrEmpty(req.BalanceDisabled),
 		SettingBalanceRechargeMult:               formatPositiveFloat(req.BalanceRechargeMultiplier),
 		SettingRechargeFeeRate:                   formatNonNegativeFloat(req.RechargeFeeRate),
+		SettingBillingCurrency:                   formatCurrencyOrEmpty(req.BillingCurrency),
+		SettingPricingCurrency:                   formatCurrencyOrEmpty(req.PricingCurrency),
+		SettingUSDToCNYRate:                      formatExchangeRate(req.USDToCNYRate),
+		SettingExchangeRateAuto:                  formatBoolOrEmpty(req.ExchangeRateAuto),
 		SettingLoadBalanceStrategy:               derefStr(req.LoadBalanceStrategy),
 		SettingProductNamePrefix:                 derefStr(req.ProductNamePrefix),
 		SettingProductNameSuffix:                 derefStr(req.ProductNameSuffix),
@@ -357,6 +386,40 @@ func formatNonNegativeFloat(v *float64) string {
 		return ""
 	}
 	return strconv.FormatFloat(*v, 'f', 2, 64)
+}
+
+func normalizeCurrencyCode(value string, fallback string) string {
+	normalized := strings.ToUpper(strings.TrimSpace(value))
+	if len(normalized) != 3 {
+		return fallback
+	}
+	for _, ch := range normalized {
+		if ch < 'A' || ch > 'Z' {
+			return fallback
+		}
+	}
+	return normalized
+}
+
+func normalizeExchangeRate(rate float64) float64 {
+	if math.IsNaN(rate) || math.IsInf(rate, 0) || rate <= 0 {
+		return defaultUSDToCNYRate
+	}
+	return rate
+}
+
+func formatCurrencyOrEmpty(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return normalizeCurrencyCode(*v, "")
+}
+
+func formatExchangeRate(v *float64) string {
+	if v == nil || *v <= 0 || math.IsNaN(*v) || math.IsInf(*v, 0) {
+		return ""
+	}
+	return strconv.FormatFloat(*v, 'f', 6, 64)
 }
 
 func formatPositiveInt(v *int) string {

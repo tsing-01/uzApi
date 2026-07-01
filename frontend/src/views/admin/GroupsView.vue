@@ -144,7 +144,7 @@
                   "
                 >
                   <span v-if="row.daily_limit_usd"
-                    >${{ row.daily_limit_usd }}/{{
+                    >¥{{ row.daily_limit_usd }}/{{
                       t("admin.groups.limitDay")
                     }}</span
                   >
@@ -157,7 +157,7 @@
                     >·</span
                   >
                   <span v-if="row.weekly_limit_usd"
-                    >${{ row.weekly_limit_usd }}/{{
+                    >¥{{ row.weekly_limit_usd }}/{{
                       t("admin.groups.limitWeek")
                     }}</span
                   >
@@ -167,7 +167,7 @@
                     >·</span
                   >
                   <span v-if="row.monthly_limit_usd"
-                    >${{ row.monthly_limit_usd }}/{{
+                    >¥{{ row.monthly_limit_usd }}/{{
                       t("admin.groups.limitMonth")
                     }}</span
                   >

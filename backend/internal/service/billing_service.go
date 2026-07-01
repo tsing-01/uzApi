@@ -2,10 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"math"
+	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/uzapi/internal/config"
@@ -157,23 +161,38 @@ type CostBreakdown struct {
 	BillingMode       string  // 计费模式（"token"/"per_request"/"image"），由 CalculateCostUnified 填充
 }
 
+type billingConfigProvider interface {
+	GetPaymentConfig(ctx context.Context) (*PaymentConfig, error)
+}
+
+type billingExchangeRateCache struct {
+	mu        sync.Mutex
+	rate      float64
+	expiresAt time.Time
+}
+
 // ErrModelPricingUnavailable indicates that none of the configured pricing
 // sources can price the requested model.
 var ErrModelPricingUnavailable = errors.New("pricing not found")
 
 // BillingService 计费服务
 type BillingService struct {
-	cfg            *config.Config
-	pricingService *PricingService
-	fallbackPrices map[string]*ModelPricing // 硬编码回退价格
+	cfg                   *config.Config
+	pricingService        *PricingService
+	billingConfigProvider billingConfigProvider
+	exchangeRateCache     billingExchangeRateCache
+	fallbackPrices        map[string]*ModelPricing // 硬编码回退价格
 }
 
 // NewBillingService 创建计费服务实例
-func NewBillingService(cfg *config.Config, pricingService *PricingService) *BillingService {
+func NewBillingService(cfg *config.Config, pricingService *PricingService, billingConfigProviders ...billingConfigProvider) *BillingService {
 	s := &BillingService{
 		cfg:            cfg,
 		pricingService: pricingService,
 		fallbackPrices: make(map[string]*ModelPricing),
+	}
+	if len(billingConfigProviders) > 0 {
+		s.billingConfigProvider = billingConfigProviders[0]
 	}
 
 	// 初始化硬编码回退价格（当动态价格不可用时使用）
@@ -496,6 +515,7 @@ func (s *BillingService) CalculateCostUnified(input CostInput) (*CostBreakdown, 
 		if breakdown.BillingMode == "" {
 			breakdown.BillingMode = string(BillingModeToken)
 		}
+		s.applyBillingCurrencyRate(input.Ctx, breakdown)
 	}
 	return breakdown, err
 }
@@ -614,6 +634,99 @@ func (s *BillingService) computeCacheCreationCost(pricing *ModelPricing, tokens 
 	return float64(tokens.CacheCreationTokens) * pricing.CacheCreationPricePerToken * multiplier
 }
 
+func (s *BillingService) applyBillingCurrencyRate(ctx context.Context, bd *CostBreakdown) {
+	if bd == nil {
+		return
+	}
+	rate := s.billingCurrencyRate(ctx)
+	if rate == 1 {
+		return
+	}
+	bd.InputCost *= rate
+	bd.OutputCost *= rate
+	bd.ImageOutputCost *= rate
+	bd.CacheCreationCost *= rate
+	bd.CacheReadCost *= rate
+	bd.TotalCost *= rate
+	bd.ActualCost *= rate
+}
+
+func (s *BillingService) billingCurrencyRate(ctx context.Context) float64 {
+	if s == nil || s.billingConfigProvider == nil {
+		return 1
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	cfg, err := s.billingConfigProvider.GetPaymentConfig(ctx)
+	if err != nil || cfg == nil {
+		return 1
+	}
+	pricingCurrency := normalizeCurrencyCode(cfg.PricingCurrency, defaultPricingCurrency)
+	billingCurrency := normalizeCurrencyCode(cfg.BillingCurrency, defaultBillingCurrency)
+	if pricingCurrency == billingCurrency {
+		return 1
+	}
+	if pricingCurrency == "USD" && billingCurrency == "CNY" {
+		fallback := normalizeExchangeRate(cfg.USDToCNYRate)
+		if cfg.ExchangeRateAuto {
+			return s.cachedUSDToCNYRate(ctx, fallback)
+		}
+		return fallback
+	}
+	return 1
+}
+
+func (s *BillingService) cachedUSDToCNYRate(ctx context.Context, fallback float64) float64 {
+	now := time.Now()
+	s.exchangeRateCache.mu.Lock()
+	if s.exchangeRateCache.rate > 0 && now.Before(s.exchangeRateCache.expiresAt) {
+		rate := s.exchangeRateCache.rate
+		s.exchangeRateCache.mu.Unlock()
+		return rate
+	}
+	s.exchangeRateCache.mu.Unlock()
+
+	rate, err := fetchUSDToCNYRate(ctx)
+	if err != nil || rate <= 0 || math.IsNaN(rate) || math.IsInf(rate, 0) {
+		return fallback
+	}
+
+	s.exchangeRateCache.mu.Lock()
+	s.exchangeRateCache.rate = rate
+	s.exchangeRateCache.expiresAt = now.Add(time.Hour)
+	s.exchangeRateCache.mu.Unlock()
+	return rate
+}
+
+func fetchUSDToCNYRate(ctx context.Context) (float64, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	fetchCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(fetchCtx, http.MethodGet, "https://open.er-api.com/v6/latest/USD", nil)
+	if err != nil {
+		return 0, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return 0, fmt.Errorf("exchange rate status %d", resp.StatusCode)
+	}
+	var payload struct {
+		Rates map[string]float64 `json:"rates"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return 0, err
+	}
+	return payload.Rates["CNY"], nil
+}
+
 // calculatePerRequestCost 按次/图片计费
 func (s *BillingService) calculatePerRequestCost(resolved *ResolvedPricing, input CostInput) (*CostBreakdown, error) {
 	count := input.RequestCount
@@ -668,7 +781,9 @@ func (s *BillingService) calculateCostInternal(model string, tokens UsageTokens,
 	}
 
 	// 旧路径始终检查长上下文定价（无区间定价概念）
-	return s.computeTokenBreakdown(pricing, tokens, rateMultiplier, serviceTier, true), nil
+	bd := s.computeTokenBreakdown(pricing, tokens, rateMultiplier, serviceTier, true)
+	s.applyBillingCurrencyRate(context.Background(), bd)
+	return bd, nil
 }
 
 func (s *BillingService) applyModelSpecificPricingPolicy(model string, pricing *ModelPricing) *ModelPricing {
@@ -882,11 +997,13 @@ func (s *BillingService) CalculateImageCost(model string, imageSize string, imag
 	}
 	actualCost := totalCost * rateMultiplier
 
-	return &CostBreakdown{
+	bd := &CostBreakdown{
 		TotalCost:   totalCost,
 		ActualCost:  actualCost,
 		BillingMode: string(BillingModeImage),
 	}
+	s.applyBillingCurrencyRate(context.Background(), bd)
+	return bd
 }
 
 // getImageUnitPrice 获取图片单价

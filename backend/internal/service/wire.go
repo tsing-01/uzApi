@@ -506,7 +506,7 @@ var ProviderSet = wire.NewSet(
 	NewUsageService,
 	NewDashboardService,
 	ProvidePricingService,
-	NewBillingService,
+	ProvideBillingService,
 	ProvideBillingCacheService,
 	NewAnnouncementService,
 	NewAdminService,
@@ -598,6 +598,10 @@ func ProvideUserPlatformQuotaUsageFlusher(cfg *config.Config, cache BillingCache
 // payment.EncryptionKey type instead of raw []byte, avoiding Wire ambiguity.
 func ProvidePaymentConfigService(entClient *dbent.Client, settingRepo SettingRepository, key payment.EncryptionKey) *PaymentConfigService {
 	return NewPaymentConfigService(entClient, settingRepo, []byte(key))
+}
+
+func ProvideBillingService(cfg *config.Config, pricingService *PricingService, paymentConfigService *PaymentConfigService) *BillingService {
+	return NewBillingService(cfg, pricingService, paymentConfigService)
 }
 
 // ProvideBalanceNotifyService creates BalanceNotifyService

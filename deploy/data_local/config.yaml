@@ -4,7 +4,7 @@ server:
     mode: debug
 database:
     host: 127.0.0.1
-    port: 5432
+    port: 55432
     user: uzapi
     password: f92d724f01afaab377bcea4c0fe5bd951525014ff1735532
     dbname: uzapi
@@ -27,3 +27,11 @@ rate_limit:
     requests_per_minute: 60
     burst_size: 10
 timezone: Asia/Shanghai
+cors:
+    allowed_origins:
+        - http://127.0.0.1:3000
+        - http://localhost:3000
+    allow_credentials: true
+security:
+    csrf:
+        enabled: false

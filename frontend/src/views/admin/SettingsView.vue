@@ -5815,6 +5815,39 @@
                     </div>
                   </div>
                 </div>
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div>
+                    <label class="input-label">{{ t("admin.settings.payment.billingCurrency") }}</label>
+                    <input v-model="form.payment_billing_currency" type="text" maxlength="3" class="input uppercase" placeholder="CNY" />
+                  </div>
+                  <div>
+                    <label class="input-label">{{ t("admin.settings.payment.pricingCurrency") }}</label>
+                    <input v-model="form.payment_pricing_currency" type="text" maxlength="3" class="input uppercase" placeholder="USD" />
+                  </div>
+                  <div>
+                    <label class="input-label">{{ t("admin.settings.payment.usdCnyExchangeRate") }}</label>
+                    <input
+                      :value="form.payment_usd_cny_exchange_rate || ''"
+                      @input="
+                        form.payment_usd_cny_exchange_rate =
+                          parseFloat(($event.target as HTMLInputElement).value) || 7.2
+                      "
+                      type="number"
+                      step="0.000001"
+                      min="0.000001"
+                      class="input"
+                    />
+                    <p class="mt-0.5 text-xs text-gray-400">
+                      {{ t("admin.settings.payment.usdCnyExchangeRateHint") }}
+                    </p>
+                  </div>
+                  <div class="flex items-end">
+                    <label class="flex min-h-10 items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <input v-model="form.payment_exchange_rate_auto" type="checkbox" class="checkbox" />
+                      <span>{{ t("admin.settings.payment.exchangeRateAuto") }}</span>
+                    </label>
+                  </div>
+                </div>
                 <!-- Row 2: Balance toggle + amounts -->
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
                   <div>
@@ -6530,7 +6563,7 @@
                 <div class="relative">
                   <span
                     class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    >$</span
+                    >¥</span
                   >
                   <input
                     v-model.number="form.balance_low_notify_threshold"
@@ -7075,8 +7108,12 @@ const form = reactive<SettingsForm>({
   payment_max_pending_orders: 3,
   payment_order_timeout_minutes: 30,
   payment_balance_disabled: false,
-  payment_balance_recharge_multiplier: 1,
+  payment_balance_recharge_multiplier: 0.7,
   payment_recharge_fee_rate: 0,
+  payment_billing_currency: "CNY",
+  payment_pricing_currency: "USD",
+  payment_usd_cny_exchange_rate: 7.2,
+  payment_exchange_rate_auto: false,
   payment_enabled_types: [],
   payment_help_image_url: "",
   payment_help_text: "",
@@ -8349,8 +8386,12 @@ async function saveSettings() {
         Number(form.payment_order_timeout_minutes) || 0,
       payment_balance_disabled: form.payment_balance_disabled,
       payment_balance_recharge_multiplier:
-        Number(form.payment_balance_recharge_multiplier) || 1,
+        Number(form.payment_balance_recharge_multiplier) || 0.7,
       payment_recharge_fee_rate: Number(form.payment_recharge_fee_rate) || 0,
+      payment_billing_currency: (form.payment_billing_currency || "CNY").toUpperCase(),
+      payment_pricing_currency: (form.payment_pricing_currency || "USD").toUpperCase(),
+      payment_usd_cny_exchange_rate: Number(form.payment_usd_cny_exchange_rate) || 7.2,
+      payment_exchange_rate_auto: form.payment_exchange_rate_auto,
       payment_enabled_types: form.payment_enabled_types,
       payment_load_balance_strategy: form.payment_load_balance_strategy,
       payment_product_name_prefix: form.payment_product_name_prefix,
