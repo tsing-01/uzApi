@@ -37,7 +37,11 @@ echo "==> Pulling uzApi image"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull --quiet uzapi
 
 echo "==> Starting uzApi"
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --no-build --remove-orphans
+if ! docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --no-build --remove-orphans; then
+  echo "ERROR: docker compose failed to start. Recent uzApi logs:" >&2
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" logs --tail=200 uzapi >&2 || true
+  exit 1
+fi
 
 echo "==> Waiting for health check"
 for i in $(seq 1 60); do
