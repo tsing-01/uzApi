@@ -11,7 +11,6 @@
    - `ALIYUN_PORT`，默认 `22`
    - `ALIYUN_SSH_KEY`
    - `ALIYUN_APP_DIR`，默认 `/opt/uzapi`
-   - `ALIYUN_REGISTRY` / `ALIYUN_NAMESPACE` / `ALIYUN_USERNAME` / `ALIYUN_PASSWORD`，推荐配置，ECS 拉阿里云 ACR 镜像会快很多
    - `GHCR_USERNAME` / `GHCR_TOKEN`，私有 GHCR 包才需要
 3. 首次把仓库同步到 ECS 后，在 ECS 上执行：
 
@@ -28,11 +27,11 @@ vi deploy/aliyun/.env.production
 git push origin master
 ```
 
-GitHub Actions 会先构建并推送 Docker 镜像到阿里云 ACR（未配置时使用 GHCR），成功后只同步部署文件到阿里云 ECS，由 ECS 拉取镜像并重启服务。
+GitHub Actions 会先构建并推送 Docker 镜像到 GHCR，成功后只同步部署文件到阿里云 ECS，由 ECS 拉取镜像并重启服务。
 
 ## 注意
 
 - `.env.production` 不会被提交，必须保留在 ECS 上。
-- 优先使用阿里云 ACR，避免 ECS 从 GHCR 跨境拉镜像太慢。
+- 如果 GHCR package 是私有的，需要配置 `GHCR_USERNAME` / `GHCR_TOKEN`，并确保 token 有 `read:packages` 权限。
 - 有域名时把 `DOMAIN=:80` 改成 `api.uzapi.org`，Caddy 会自动申请 HTTPS 证书。
 - OpenAI API Key 通常在后台账号/渠道配置，不写进 `.env.production`。

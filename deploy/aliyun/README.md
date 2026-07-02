@@ -1,6 +1,6 @@
 # uzApi 阿里云 ECS 部署说明
 
-这套配置的目标是：你 push 到 `master` 后，GitHub Actions 构建并推送 Docker 镜像到阿里云 ACR（未配置时使用 GHCR），再把部署文件同步到阿里云 ECS，由 ECS 拉取镜像并执行 Docker Compose 部署。
+这套配置的目标是：你 push 到 `master` 后，GitHub Actions 构建并推送 Docker 镜像到 GHCR，再把部署文件同步到阿里云 ECS，由 ECS 拉取镜像并执行 Docker Compose 部署。
 
 ## 1. 阿里云侧准备
 
@@ -45,7 +45,7 @@ openssl rand -hex 32
 
 你的 OpenAI API Key 通常在后台账号/渠道里配置，不建议写进 `.env.production`。
 
-`APP_IMAGE` / `APP_IMAGE_TAG` 在 GitHub Actions 自动部署时会被当前 commit 的镜像覆盖。推荐给阿里云 ECS 配置阿里云 ACR，避免从 GHCR 跨境拉镜像导致部署很慢。手动部署时如果使用私有镜像仓库，需要先在 ECS 上执行对应的 `docker login`。
+`APP_IMAGE` / `APP_IMAGE_TAG` 在 GitHub Actions 自动部署时会被当前 commit 的 GHCR 镜像覆盖。手动部署时如果使用私有镜像仓库，需要先在 ECS 上执行对应的 `docker login`。
 
 ## 3. 手动部署一次
 
@@ -73,10 +73,6 @@ curl -i http://127.0.0.1/health
 | `ALIYUN_PORT` | `22` | SSH 端口，默认 22 |
 | `ALIYUN_SSH_KEY` | 私钥全文 | 能登录 ECS 的私钥 |
 | `ALIYUN_APP_DIR` | `/opt/uzapi` | ECS 上项目部署目录，默认 `/opt/uzapi` |
-| `ALIYUN_REGISTRY` | `crpi-xxxxx.cn-hangzhou.personal.cr.aliyuncs.com` | 推荐，个人版 ACR 实例公网地址 |
-| `ALIYUN_NAMESPACE` | `your-namespace` | 推荐，阿里云 ACR 命名空间；默认 `uzapi` |
-| `ALIYUN_USERNAME` | `your-acr-user` | 推荐，ACR 登录用户名 |
-| `ALIYUN_PASSWORD` | `your-acr-password` | 推荐，ACR 固定密码 |
 | `GHCR_USERNAME` | `your-github-user` | 可选，私有 GHCR 包拉取用户名 |
 | `GHCR_TOKEN` | `ghp_xxx` | 可选，私有 GHCR 包拉取 token，需 `read:packages` |
 
@@ -89,7 +85,7 @@ git push origin master
 workflow 会：
 
 1. 在 GitHub Actions runner 上构建 Docker 镜像。
-2. 优先推送镜像到阿里云 ACR；未配置 ACR 时推送到 GHCR。标签为当前 commit SHA 和 `aliyun-latest`。
+2. 推送镜像到 GHCR。标签为当前 commit SHA 和 `aliyun-latest`。
 3. 只把 `deploy/aliyun` 和必要脚本同步到 ECS。
 4. 在 ECS 上执行 `scripts/aliyun-deploy.sh`。
 5. ECS 拉取指定镜像并重启服务，不在 ECS 上 build。
