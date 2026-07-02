@@ -8,6 +8,8 @@ BACKUP_DIR="$ROOT_DIR/deploy/aliyun/backups"
 
 cd "$ROOT_DIR"
 
+unset TZ
+
 if ! command -v docker >/dev/null 2>&1; then
   echo "ERROR: docker is not installed on this ECS host." >&2
   echo "Run scripts/aliyun-bootstrap.sh first." >&2
@@ -35,6 +37,9 @@ fi
 
 echo "==> Pulling uzApi image"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull --quiet uzapi
+
+echo "==> Resolved compose timezone"
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config | grep -n 'TZ:' || true
 
 echo "==> Starting uzApi"
 if ! docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --no-build --remove-orphans; then
