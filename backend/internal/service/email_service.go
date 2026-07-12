@@ -350,6 +350,20 @@ func (s *EmailService) SendVerifyCode(ctx context.Context, email, siteName strin
 		return fmt.Errorf("save verify code: %w", err)
 	}
 
+	// Tencent SES is opt-in through environment variables. It uses the approved
+	// SES template for verification codes and avoids storing cloud access keys in
+	// the database.
+	tencentSES, err := loadTencentSESConfig()
+	if err != nil {
+		return err
+	}
+	if tencentSES != nil {
+		if err := s.sendTencentSESVerifyCode(ctx, tencentSES, email, siteName, code); err != nil {
+			return fmt.Errorf("send Tencent SES verification email: %w", err)
+		}
+		return nil
+	}
+
 	if s.notificationEmailService != nil {
 		err := s.notificationEmailService.Send(ctx, NotificationEmailSendInput{
 			Event:          NotificationEmailEventAuthVerifyCode,

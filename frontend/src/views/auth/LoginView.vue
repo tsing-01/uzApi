@@ -10,8 +10,32 @@
           {{ t('auth.signInToAccount') }}
         </p>
       </div>
+      <div class="grid grid-cols-2 rounded-lg bg-gray-100 p-1 dark:bg-dark-800">
+        <button
+          type="button"
+          class="rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          :class="loginMethod === 'password'
+            ? 'bg-white text-gray-900 shadow-sm dark:bg-dark-700 dark:text-white'
+            : 'text-gray-500 hover:text-gray-700 dark:text-dark-300 dark:hover:text-white'"
+          :disabled="authActionDisabled"
+          @click="loginMethod = 'password'"
+        >
+          {{ t('auth.passwordLogin') }}
+        </button>
+        <button
+          type="button"
+          class="rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          :class="loginMethod === 'code'
+            ? 'bg-white text-gray-900 shadow-sm dark:bg-dark-700 dark:text-white'
+            : 'text-gray-500 hover:text-gray-700 dark:text-dark-300 dark:hover:text-white'"
+          :disabled="authActionDisabled"
+          @click="loginMethod = 'code'"
+        >
+          {{ t('auth.codeLogin') }}
+        </button>
+      </div>
       <!-- Login Form -->
-      <form @submit.prevent="handleLogin" class="space-y-5">
+      <form novalidate @submit.prevent="handleLogin" class="space-y-5">
         <!-- Email Input -->
         <div>
           <label for="email" class="input-label">
@@ -36,8 +60,44 @@
           </div>
         </div>
 
+        <div v-if="loginMethod === 'code'">
+          <label for="verify_code" class="input-label">
+            {{ t('auth.verificationCode') }}
+          </label>
+          <div class="flex gap-2">
+            <div class="relative min-w-0 flex-1">
+              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                <Icon name="key" size="md" class="text-gray-400 dark:text-dark-500" />
+              </div>
+              <input
+                id="verify_code"
+                v-model="formData.verify_code"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="6"
+                required
+                :disabled="authActionDisabled"
+                class="input pl-11"
+                :class="{ 'input-error': errors.verify_code }"
+                :placeholder="t('auth.verificationCodePlaceholder')"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-secondary min-w-[116px]"
+              :disabled="sendCodeDisabled"
+              @click="handleSendLoginCode"
+            >
+              <span v-if="isSendingCode">{{ t('auth.sendingCode') }}</span>
+              <span v-else-if="codeCountdown > 0">{{ t('auth.resendCountdownShort', { countdown: codeCountdown }) }}</span>
+              <span v-else>{{ t('auth.sendCode') }}</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Password Input -->
-        <div>
+        <div v-else>
           <label for="password" class="input-label">
             {{ t('auth.passwordLabel') }}
           </label>
@@ -50,6 +110,8 @@
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               required
+              minlength="8"
+              maxlength="16"
               autocomplete="current-password"
               :disabled="authActionDisabled"
               class="input pl-11 pr-11"
@@ -67,7 +129,9 @@
             </button>
           </div>
           <div class="mt-1 flex items-center justify-between">
-            <span></span>
+            <p :class="errors.password ? 'input-error-text' : 'input-hint'">
+              {{ errors.password || t('auth.passwordHint') }}
+            </p>
             <router-link
               v-if="passwordResetEnabled && !backendModeEnabled"
               to="/forgot-password"
@@ -92,7 +156,7 @@
         <!-- Submit Button -->
         <button
           type="submit"
-          :disabled="authActionDisabled || (turnstileEnabled && !turnstileToken)"
+          :disabled="submitDisabled"
           class="btn btn-primary w-full"
         >
           <svg
@@ -198,7 +262,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted, watch } from 'vue'
+import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { AuthLayout } from '@/components/layout'
@@ -212,7 +276,7 @@ import TotpLoginModal from '@/components/auth/TotpLoginModal.vue'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
 import { useAuthStore, useAppStore } from '@/stores'
-import { getPublicSettings, isTotp2FARequired, isWeChatWebOAuthEnabled } from '@/api/auth'
+import { getPublicSettings, isTotp2FARequired, isWeChatWebOAuthEnabled, sendVerifyCode } from '@/api/auth'
 import type { LoginAgreementDocument, TotpLoginResponse } from '@/types'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { clearAllAffiliateReferralCodes } from '@/utils/oauthAffiliate'
@@ -229,9 +293,13 @@ const appStore = useAppStore()
 // ==================== State ====================
 
 const isLoading = ref<boolean>(false)
+const isSendingCode = ref<boolean>(false)
 const errorMessage = ref<string>('')
 const showPassword = ref<boolean>(false)
 const publicSettingsLoaded = ref<boolean>(false)
+const loginMethod = ref<'password' | 'code'>('password')
+const codeCountdown = ref<number>(0)
+let codeCountdownTimer: ReturnType<typeof setInterval> | null = null
 
 // Public settings
 const turnstileEnabled = ref<boolean>(false)
@@ -265,17 +333,19 @@ const totpModalRef = ref<InstanceType<typeof TotpLoginModal> | null>(null)
 
 const formData = reactive({
   email: '',
-  password: ''
+  password: '',
+  verify_code: ''
 })
 
 const errors = reactive({
   email: '',
   password: '',
+  verify_code: '',
   turnstile: ''
 })
 
 const validationToastMessage = computed(
-  () => errors.email || errors.password || errors.turnstile || ''
+  () => errors.email || errors.password || errors.verify_code || errors.turnstile || ''
 )
 
 const agreementGateActive = computed(
@@ -284,6 +354,21 @@ const agreementGateActive = computed(
 
 const authActionDisabled = computed(
   () => isLoading.value || !publicSettingsLoaded.value || agreementGateActive.value
+)
+
+const submitDisabled = computed(
+  () =>
+    authActionDisabled.value ||
+    (loginMethod.value === 'password' && turnstileEnabled.value && !turnstileToken.value)
+)
+
+const sendCodeDisabled = computed(
+  () =>
+    authActionDisabled.value ||
+    isSendingCode.value ||
+    codeCountdown.value > 0 ||
+    !formData.email.trim() ||
+    (turnstileEnabled.value && !turnstileToken.value)
 )
 
 const showOAuthLogin = computed(
@@ -336,6 +421,20 @@ onMounted(async () => {
   } finally {
     publicSettingsLoaded.value = true
   }
+})
+
+onUnmounted(() => {
+  stopCodeCountdown()
+})
+
+watch(loginMethod, () => {
+  errors.password = ''
+  errors.verify_code = ''
+  errors.turnstile = ''
+  if (turnstileRef.value) {
+    turnstileRef.value.reset()
+  }
+  turnstileToken.value = ''
 })
 
 // ==================== Login Agreement ====================
@@ -417,12 +516,89 @@ function onTurnstileError(): void {
   errors.turnstile = t('auth.turnstileFailed')
 }
 
+// ==================== Verification Code ====================
+
+function startCodeCountdown(seconds: number): void {
+  stopCodeCountdown()
+  codeCountdown.value = seconds
+  codeCountdownTimer = setInterval(() => {
+    codeCountdown.value = Math.max(0, codeCountdown.value - 1)
+    if (codeCountdown.value <= 0) {
+      stopCodeCountdown()
+    }
+  }, 1000)
+}
+
+function stopCodeCountdown(): void {
+  if (codeCountdownTimer) {
+    clearInterval(codeCountdownTimer)
+    codeCountdownTimer = null
+  }
+}
+
+function validateEmailOnly(): boolean {
+  errors.email = ''
+  errors.turnstile = ''
+
+  if (!formData.email.trim()) {
+    errors.email = t('auth.emailRequired')
+    return false
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = t('auth.invalidEmail')
+    return false
+  }
+  if (turnstileEnabled.value && !turnstileToken.value) {
+    errors.turnstile = t('auth.completeVerification')
+    return false
+  }
+  return true
+}
+
+function isPasswordFormatValid(password: string): boolean {
+  return /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,16}$/.test(password)
+}
+
+async function handleSendLoginCode(): Promise<void> {
+  if (!validateEmailOnly()) {
+    return
+  }
+
+  isSendingCode.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await sendVerifyCode({
+      email: formData.email,
+      purpose: 'login',
+      turnstile_token: turnstileEnabled.value ? turnstileToken.value : undefined
+    })
+    appStore.showSuccess(t('auth.codeSentSuccess'))
+    startCodeCountdown(response.countdown)
+
+    if (turnstileRef.value) {
+      turnstileRef.value.reset()
+    }
+    turnstileToken.value = ''
+  } catch (error: unknown) {
+    if (turnstileRef.value) {
+      turnstileRef.value.reset()
+    }
+    turnstileToken.value = ''
+    errorMessage.value = extractI18nErrorMessage(error, t, 'auth.errors', t('auth.sendCodeFailed'))
+    appStore.showError(errorMessage.value)
+  } finally {
+    isSendingCode.value = false
+  }
+}
+
 // ==================== Validation ====================
 
 function validateForm(): boolean {
   // Reset errors
   errors.email = ''
   errors.password = ''
+  errors.verify_code = ''
   errors.turnstile = ''
 
   let isValid = true
@@ -444,19 +620,28 @@ function validateForm(): boolean {
     isValid = false
   }
 
-  // Password validation
-  if (!formData.password) {
-    errors.password = t('auth.passwordRequired')
-    isValid = false
-  } else if (formData.password.length < 6) {
-    errors.password = t('auth.passwordMinLength')
-    isValid = false
-  }
+  if (loginMethod.value === 'password') {
+    if (!formData.password) {
+      errors.password = t('auth.passwordRequired')
+      isValid = false
+    } else if (!isPasswordFormatValid(formData.password)) {
+      errors.password = t('auth.passwordFormat')
+      isValid = false
+    }
 
-  // Turnstile validation
-  if (turnstileEnabled.value && !turnstileToken.value) {
-    errors.turnstile = t('auth.completeVerification')
-    isValid = false
+    if (turnstileEnabled.value && !turnstileToken.value) {
+      errors.turnstile = t('auth.completeVerification')
+      isValid = false
+    }
+  } else {
+    const code = formData.verify_code.trim()
+    if (!code) {
+      errors.verify_code = t('auth.codeRequired')
+      isValid = false
+    } else if (!/^\d{6}$/.test(code)) {
+      errors.verify_code = t('auth.invalidCode')
+      isValid = false
+    }
   }
 
   return isValid
@@ -479,8 +664,11 @@ async function handleLogin(): Promise<void> {
     // Call auth store login
     const response = await authStore.login({
       email: formData.email,
-      password: formData.password,
-      turnstile_token: turnstileEnabled.value ? turnstileToken.value : undefined
+      login_method: loginMethod.value,
+      password: loginMethod.value === 'password' ? formData.password : undefined,
+      verify_code: loginMethod.value === 'code' ? formData.verify_code.trim() : undefined,
+      turnstile_token:
+        loginMethod.value === 'password' && turnstileEnabled.value ? turnstileToken.value : undefined
     })
 
     // Check if 2FA is required

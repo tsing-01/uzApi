@@ -27,7 +27,7 @@
       </div>
 
       <!-- Registration Form -->
-      <form v-else @submit.prevent="handleRegister" class="space-y-5">
+      <form v-else novalidate @submit.prevent="handleRegister" class="space-y-5">
         <!-- Email Input -->
         <div>
           <label for="email" class="input-label">
@@ -66,6 +66,8 @@
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               required
+              minlength="8"
+              maxlength="16"
               autocomplete="new-password"
               :disabled="registrationActionDisabled"
               class="input pl-11 pr-11"
@@ -82,8 +84,8 @@
               <Icon v-else name="eye" size="md" />
             </button>
           </div>
-          <p class="input-hint">
-            {{ t('auth.passwordHint') }}
+          <p :class="errors.password ? 'input-error-text' : 'input-hint'">
+            {{ errors.password || t('auth.passwordHint') }}
           </p>
         </div>
 
@@ -193,6 +195,21 @@
           />
         </div>
 
+        <!-- Local slider challenge used before any registration action. -->
+        <div class="rounded-xl border p-3" :class="sliderVerified ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800/50 dark:bg-emerald-900/20' : 'border-gray-200 bg-gray-50 dark:border-dark-700 dark:bg-dark-800'">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-sm">
+              <Icon :name="sliderVerified ? 'checkCircle' : 'shield'" size="md" :class="sliderVerified ? 'text-emerald-600' : 'text-gray-500'" />
+              <span :class="sliderVerified ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-600 dark:text-dark-300'">
+                {{ sliderVerified ? t('auth.sliderVerificationPassed') : t('auth.sliderVerificationRequired') }}
+              </span>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm shrink-0" @click="openSliderCaptcha">
+              {{ sliderVerified ? t('auth.verifyAgain') : t('auth.startVerification') }}
+            </button>
+          </div>
+        </div>
+
         <LoginAgreementPrompt
           v-if="loginAgreementEnabled"
           :accepted="agreementAccepted"
@@ -208,7 +225,7 @@
         <!-- Submit Button -->
         <button
           type="submit"
-          :disabled="registrationActionDisabled || (turnstileEnabled && !turnstileToken)"
+          :disabled="registrationActionDisabled || !sliderVerified || (turnstileEnabled && !turnstileToken)"
           class="btn btn-primary w-full"
         >
           <svg
@@ -294,6 +311,18 @@
         </router-link>
       </p>
     </template>
+
+    <Vcode
+      :show="showSliderCaptcha"
+      :canvas-width="310"
+      :canvas-height="160"
+      :range="8"
+      :slider-text="t('auth.sliderVerificationHint')"
+      :success-text="t('auth.sliderVerificationPassed')"
+      :fail-text="t('auth.sliderVerificationFailed')"
+      @success="onSliderCaptchaSuccess"
+      @close="onSliderCaptchaClose"
+    />
   </AuthLayout>
 </template>
 
@@ -309,6 +338,8 @@ import EmailOAuthButtons from '@/components/auth/EmailOAuthButtons.vue'
 import LoginAgreementPrompt from '@/components/auth/LoginAgreementPrompt.vue'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
+import Vcode from 'vue3-puzzle-vcode'
+import 'vue3-puzzle-vcode/css'
 import { useAuthStore, useAppStore } from '@/stores'
 import {
   getPublicSettings,
@@ -345,6 +376,8 @@ const isLoading = ref<boolean>(false)
 const settingsLoaded = ref<boolean>(false)
 const errorMessage = ref<string>('')
 const showPassword = ref<boolean>(false)
+const showSliderCaptcha = ref<boolean>(false)
+const sliderVerified = ref<boolean>(false)
 
 // Public settings
 const registrationEnabled = ref<boolean>(true)
@@ -404,6 +437,7 @@ const errors = reactive({
   email: '',
   password: '',
   turnstile: '',
+  slider: '',
   invitation_code: ''
 })
 
@@ -414,6 +448,7 @@ const validationToastMessage = computed(() =>
   errors.invitation_code ||
   (promoValidation.invalid ? promoValidation.message : '') ||
   errors.turnstile ||
+  errors.slider ||
   ''
 )
 
@@ -496,6 +531,14 @@ watch(
   () => [route.query.aff, route.query.aff_code],
   () => {
     syncAffiliateReferralCode()
+  }
+)
+
+// A solved challenge is valid only for the current registration form values.
+watch(
+  () => [formData.email, formData.password],
+  () => {
+    sliderVerified.value = false
   }
 )
 
@@ -724,11 +767,29 @@ function onTurnstileError(): void {
   errors.turnstile = t('auth.turnstileFailed')
 }
 
+function openSliderCaptcha(): void {
+  showSliderCaptcha.value = true
+}
+
+function onSliderCaptchaClose(): void {
+  showSliderCaptcha.value = false
+}
+
+function onSliderCaptchaSuccess(): void {
+  sliderVerified.value = true
+  showSliderCaptcha.value = false
+  errors.slider = ''
+}
+
 // ==================== Validation ====================
 
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
+}
+
+function isPasswordFormatValid(password: string): boolean {
+  return /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,16}$/.test(password)
 }
 
 function buildEmailSuffixNotAllowedMessage(): string {
@@ -752,6 +813,7 @@ function validateForm(): boolean {
   errors.email = ''
   errors.password = ''
   errors.turnstile = ''
+  errors.slider = ''
   errors.invitation_code = ''
 
   let isValid = true
@@ -782,8 +844,8 @@ function validateForm(): boolean {
   if (!formData.password) {
     errors.password = t('auth.passwordRequired')
     isValid = false
-  } else if (formData.password.length < 6) {
-    errors.password = t('auth.passwordMinLength')
+  } else if (!isPasswordFormatValid(formData.password)) {
+    errors.password = t('auth.passwordFormat')
     isValid = false
   }
 
@@ -798,6 +860,11 @@ function validateForm(): boolean {
   // Turnstile validation
   if (turnstileEnabled.value && !turnstileToken.value) {
     errors.turnstile = t('auth.completeVerification')
+    isValid = false
+  }
+
+  if (!sliderVerified.value) {
+    errors.slider = t('auth.sliderVerificationRequired')
     isValid = false
   }
 

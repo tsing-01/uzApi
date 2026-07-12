@@ -112,7 +112,9 @@ export interface AdminUser extends User {
 
 export interface LoginRequest {
   email: string
-  password: string
+  password?: string
+  verify_code?: string
+  login_method?: 'password' | 'code'
   turnstile_token?: string
 }
 
@@ -155,6 +157,7 @@ export interface AffiliateTransferResponse {
 export interface SendVerifyCodeRequest {
   email: string
   turnstile_token?: string
+  purpose?: 'register' | 'login'
   pending_auth_token?: string
   pending_oauth_token?: string
 }

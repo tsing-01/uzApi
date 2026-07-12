@@ -61,6 +61,7 @@ type RegisterRequest struct {
 type SendVerifyCodeRequest struct {
 	Email          string `json:"email" binding:"required,email"`
 	TurnstileToken string `json:"turnstile_token"`
+	Purpose        string `json:"purpose"`
 }
 
 // SendVerifyCodeResponse 发送验证码响应
@@ -72,7 +73,9 @@ type SendVerifyCodeResponse struct {
 // LoginRequest represents the login request payload
 type LoginRequest struct {
 	Email          string `json:"email" binding:"required,email"`
-	Password       string `json:"password" binding:"required"`
+	Password       string `json:"password"`
+	VerifyCode     string `json:"verify_code"`
+	LoginMethod    string `json:"login_method"`
 	TurnstileToken string `json:"turnstile_token"`
 }
 
@@ -203,7 +206,7 @@ func (h *AuthHandler) SendVerifyCode(c *gin.Context) {
 		return
 	}
 
-	result, err := h.authService.SendVerifyCodeAsync(c.Request.Context(), req.Email, c.GetHeader("Accept-Language"))
+	result, err := h.authService.SendVerifyCodeAsync(c.Request.Context(), req.Email, c.GetHeader("Accept-Language"), req.Purpose)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
@@ -224,19 +227,44 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Turnstile 验证
-	if err := h.authService.VerifyTurnstile(c.Request.Context(), req.TurnstileToken, ip.GetClientIP(c)); err != nil {
-		response.ErrorFrom(c, err)
+	loginMethod := strings.ToLower(strings.TrimSpace(req.LoginMethod))
+	if loginMethod == "" {
+		loginMethod = "password"
+	}
+	if loginMethod != "password" && loginMethod != "code" {
+		response.BadRequest(c, "Invalid login method")
 		return
 	}
 
-	token, user, err := h.authService.Login(c.Request.Context(), req.Email, req.Password)
+	var user *service.User
+	var err error
+	if loginMethod == "code" {
+		if strings.TrimSpace(req.VerifyCode) == "" {
+			response.BadRequest(c, "Verification code is required")
+			return
+		}
+		_, user, err = h.authService.LoginWithVerificationCode(c.Request.Context(), req.Email, req.VerifyCode)
+	} else {
+		if req.Password == "" {
+			response.BadRequest(c, "Password is required")
+			return
+		}
+		// Turnstile 验证。验证码登录的 Turnstile 已在发送验证码阶段校验，避免一次性 token 重复使用。
+		if err := h.authService.VerifyTurnstile(c.Request.Context(), req.TurnstileToken, ip.GetClientIP(c)); err != nil {
+			response.ErrorFrom(c, err)
+			return
+		}
+		_, user, err = h.authService.Login(c.Request.Context(), req.Email, req.Password)
+	}
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
-	_ = token // token 由 authService.Login 返回但此处由 respondWithTokenPair 重新生成
 
+	h.completeLogin(c, user)
+}
+
+func (h *AuthHandler) completeLogin(c *gin.Context, user *service.User) {
 	if err := h.ensureBackendModeAllowsUser(c.Request.Context(), user); err != nil {
 		response.ErrorFrom(c, err)
 		return

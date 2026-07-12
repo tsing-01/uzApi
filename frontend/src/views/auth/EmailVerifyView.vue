@@ -408,6 +408,7 @@ async function sendCode(): Promise<void> {
 
     const requestPayload = {
       email: email.value,
+      purpose: 'register',
       [pendingAuthTokenField.value]: pendingAuthToken.value || undefined,
       // 优先使用重发时新获取的 token（因为初始 token 可能已被使用）
       turnstile_token: resendTurnstileToken.value || initialTurnstileToken.value || undefined

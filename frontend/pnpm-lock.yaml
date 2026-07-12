@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  js-cookie: 3.0.7
+
 importers:
 
   .:
@@ -62,6 +65,9 @@ importers:
       vue-router:
         specifier: ^4.2.5
         version: 4.6.4(vue@3.5.26(typescript@5.6.3))
+      vue3-puzzle-vcode:
+        specifier: ^1.1.7
+        version: 1.1.7
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -4394,6 +4400,9 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: '>=5.0.0'
+
+  vue3-puzzle-vcode@1.1.7:
+    resolution: {integrity: sha512-mW780dz7HKjrElnE60CeYSeHGidKBKHoMjTDYfqF21330rTkFOsfDK1FQKZ22MktgMtTEoS/imfpEDlM1cxY/g==}
 
   vue@3.5.26:
     resolution: {integrity: sha512-SJ/NTccVyAoNUJmkM9KUqPcYlY+u8OVL1X5EW9RIs3ch5H2uERxyyIUI4MRxVCSOiEcupX9xNGde1tL9ZKpimA==}
@@ -9558,6 +9567,8 @@ snapshots:
       '@volar/typescript': 2.4.15
       '@vue/language-core': 2.2.12(typescript@5.6.3)
       typescript: 5.6.3
+
+  vue3-puzzle-vcode@1.1.7: {}
 
   vue@3.5.26(typescript@5.6.3):
     dependencies:

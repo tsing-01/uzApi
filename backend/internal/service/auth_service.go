@@ -45,6 +45,11 @@ var (
 	ErrOAuthInvitationRequired = infraerrors.Forbidden("OAUTH_INVITATION_REQUIRED", "invitation code required to complete oauth registration")
 )
 
+const (
+	verifyCodePurposeRegister = "register"
+	verifyCodePurposeLogin    = "login"
+)
+
 // maxTokenLength 限制 token 大小，避免超长 header 触发解析时的异常内存分配。
 const maxTokenLength = 8192
 
@@ -317,31 +322,51 @@ func (s *AuthService) SendVerifyCode(ctx context.Context, email string, locale .
 }
 
 // SendVerifyCodeAsync 异步发送邮箱验证码并返回倒计时
-func (s *AuthService) SendVerifyCodeAsync(ctx context.Context, email string, locale ...string) (*SendVerifyCodeResult, error) {
+func (s *AuthService) SendVerifyCodeAsync(ctx context.Context, email string, localeAndPurpose ...string) (*SendVerifyCodeResult, error) {
 	logger.LegacyPrintf("service.auth", "[Auth] SendVerifyCodeAsync called for email: %s", email)
 
-	// 检查是否开放注册（默认关闭）
-	if s.settingService == nil || !s.settingService.IsRegistrationEnabled(ctx) {
-		logger.LegacyPrintf("service.auth", "%s", "[Auth] Registration is disabled")
-		return nil, ErrRegDisabled
-	}
+	locale, purpose := splitVerifyCodeLocaleAndPurpose(localeAndPurpose...)
+	email = strings.TrimSpace(email)
 
-	if isReservedEmail(email) {
-		return nil, ErrEmailReserved
-	}
-	if err := s.validateRegistrationEmailPolicy(ctx, email); err != nil {
-		return nil, err
-	}
+	switch purpose {
+	case verifyCodePurposeRegister:
+		// 检查是否开放注册（默认关闭）
+		if s.settingService == nil || !s.settingService.IsRegistrationEnabled(ctx) {
+			logger.LegacyPrintf("service.auth", "%s", "[Auth] Registration is disabled")
+			return nil, ErrRegDisabled
+		}
 
-	// 检查邮箱是否已存在
-	existsEmail, err := s.userRepo.ExistsByEmail(ctx, email)
-	if err != nil {
-		logger.LegacyPrintf("service.auth", "[Auth] Database error checking email exists: %v", err)
-		return nil, ErrServiceUnavailable
-	}
-	if existsEmail {
-		logger.LegacyPrintf("service.auth", "[Auth] Email already exists: %s", email)
-		return nil, ErrEmailExists
+		if isReservedEmail(email) {
+			return nil, ErrEmailReserved
+		}
+		if err := s.validateRegistrationEmailPolicy(ctx, email); err != nil {
+			return nil, err
+		}
+
+		// 检查邮箱是否已存在
+		existsEmail, err := s.userRepo.ExistsByEmail(ctx, email)
+		if err != nil {
+			logger.LegacyPrintf("service.auth", "[Auth] Database error checking email exists: %v", err)
+			return nil, ErrServiceUnavailable
+		}
+		if existsEmail {
+			logger.LegacyPrintf("service.auth", "[Auth] Email already exists: %s", email)
+			return nil, ErrEmailExists
+		}
+	case verifyCodePurposeLogin:
+		user, err := s.userRepo.GetByEmail(ctx, email)
+		if err != nil {
+			if errors.Is(err, ErrUserNotFound) {
+				return nil, ErrInvalidCredentials
+			}
+			logger.LegacyPrintf("service.auth", "[Auth] Database error getting user for login verify code: %v", err)
+			return nil, ErrServiceUnavailable
+		}
+		if !user.IsActive() {
+			return nil, ErrUserNotActive
+		}
+	default:
+		return nil, infraerrors.BadRequest("INVALID_VERIFY_CODE_PURPOSE", "invalid verification code purpose")
 	}
 
 	// 检查邮件队列服务是否配置
@@ -358,7 +383,7 @@ func (s *AuthService) SendVerifyCodeAsync(ctx context.Context, email string, loc
 
 	// 异步发送
 	logger.LegacyPrintf("service.auth", "[Auth] Enqueueing verify code for: %s", email)
-	if err := s.emailQueueService.EnqueueVerifyCode(email, siteName, firstEmailLocale(locale)); err != nil {
+	if err := s.emailQueueService.EnqueueVerifyCode(email, siteName, locale); err != nil {
 		logger.LegacyPrintf("service.auth", "[Auth] Failed to enqueue: %v", err)
 		return nil, fmt.Errorf("enqueue verify code: %w", err)
 	}
@@ -367,6 +392,26 @@ func (s *AuthService) SendVerifyCodeAsync(ctx context.Context, email string, loc
 	return &SendVerifyCodeResult{
 		Countdown: 60, // 60秒倒计时
 	}, nil
+}
+
+func splitVerifyCodeLocaleAndPurpose(values ...string) (string, string) {
+	locale := firstEmailLocale(values)
+	purpose := verifyCodePurposeRegister
+	if len(values) > 1 {
+		purpose = normalizeVerifyCodePurpose(values[1])
+	}
+	return locale, purpose
+}
+
+func normalizeVerifyCodePurpose(purpose string) string {
+	switch strings.ToLower(strings.TrimSpace(purpose)) {
+	case "", verifyCodePurposeRegister:
+		return verifyCodePurposeRegister
+	case verifyCodePurposeLogin:
+		return verifyCodePurposeLogin
+	default:
+		return strings.ToLower(strings.TrimSpace(purpose))
+	}
 }
 
 // VerifyTurnstileForRegister 在注册场景下验证 Turnstile。
@@ -465,6 +510,39 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 		return "", nil, fmt.Errorf("generate token: %w", err)
 	}
 
+	return token, user, nil
+}
+
+// LoginWithVerificationCode 用户邮箱验证码登录，返回JWT token。
+func (s *AuthService) LoginWithVerificationCode(ctx context.Context, email, verifyCode string) (string, *User, error) {
+	email = strings.TrimSpace(email)
+	verifyCode = strings.TrimSpace(verifyCode)
+	if verifyCode == "" {
+		return "", nil, ErrEmailVerifyRequired
+	}
+	if s.emailService == nil {
+		return "", nil, ErrServiceUnavailable
+	}
+
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return "", nil, ErrInvalidCredentials
+		}
+		logger.LegacyPrintf("service.auth", "[Auth] Database error during verify code login: %v", err)
+		return "", nil, ErrServiceUnavailable
+	}
+	if !user.IsActive() {
+		return "", nil, ErrUserNotActive
+	}
+	if err := s.emailService.VerifyCode(ctx, email, verifyCode); err != nil {
+		return "", nil, fmt.Errorf("verify code: %w", err)
+	}
+
+	token, err := s.GenerateToken(user)
+	if err != nil {
+		return "", nil, fmt.Errorf("generate token: %w", err)
+	}
 	return token, user, nil
 }
 
