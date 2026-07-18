@@ -43,7 +43,7 @@ func loadTencentSESConfig() (*tencentSESConfig, error) {
 		return nil, nil
 	}
 	if secretID == "" || secretKey == "" || from == "" || templateIDText == "" {
-		return nil, fmt.Errorf("Tencent SES configuration is incomplete")
+		return nil, fmt.Errorf("tencent SES configuration is incomplete")
 	}
 	templateID, err := strconv.ParseInt(templateIDText, 10, 64)
 	if err != nil || templateID <= 0 {
@@ -102,13 +102,13 @@ func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *ten
 	if err != nil {
 		return fmt.Errorf("send Tencent SES request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
 		return fmt.Errorf("read Tencent SES response: %w", err)
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("Tencent SES returned HTTP %d", resp.StatusCode)
+		return fmt.Errorf("tencent SES returned HTTP %d", resp.StatusCode)
 	}
 	var result struct {
 		Response struct {
@@ -121,7 +121,7 @@ func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *ten
 		return fmt.Errorf("decode Tencent SES response: %w", err)
 	}
 	if result.Response.Error != nil {
-		return fmt.Errorf("Tencent SES rejected email: %s", result.Response.Error.Code)
+		return fmt.Errorf("tencent SES rejected email: %s", result.Response.Error.Code)
 	}
 	return nil
 }
