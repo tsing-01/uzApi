@@ -19,7 +19,7 @@ set -uo pipefail
 
 # ---- 与 CI 保持一致的版本号（改 CI 时同步这里）----------------------------
 GOLANGCI_VERSION="v2.9.0"      # backend-ci.yml: golangci-lint-action version
-REQUIRED_GO="go1.26.4"        # backend-ci.yml: Verify Go version
+REQUIRED_GO="go1.26.5"        # backend-ci.yml: Verify Go version
 LINT_TIMEOUT="30m"            # backend-ci.yml: --timeout=30m
 # ---------------------------------------------------------------------------
 
@@ -152,8 +152,15 @@ if [ "$RUN_SECURITY" -eq 1 ]; then
     bad "govulncheck 安装失败"
   fi
 
-  step "安全：pnpm audit (--prod --audit-level=high)"
-  if ( cd "$FRONTEND" && pnpm audit --prod --audit-level=high ); then ok "pnpm audit 通过"; else bad "pnpm audit 发现高危依赖"; fi
+  step "安全：pnpm audit + 例外校验（对齐 security-scan.yml）"
+  audit_json="$(mktemp)"
+  ( cd "$FRONTEND" && pnpm audit --prod --audit-level=high --json > "$audit_json" 2>/dev/null || true )
+  if python3 "$ROOT/tools/check_pnpm_audit_exceptions.py" --audit "$audit_json" --exceptions "$ROOT/.github/audit-exceptions.yml"; then
+    ok "pnpm audit 例外校验通过"
+  else
+    bad "pnpm audit 发现未豁免/已过期的高危依赖（见 .github/audit-exceptions.yml）"
+  fi
+  rm -f "$audit_json"
 fi
 
 # ============================ 汇总 =========================================

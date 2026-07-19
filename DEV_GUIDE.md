@@ -53,7 +53,7 @@ npm install -g pnpm
 
 ### CI 要求
 
-- Go 版本必须是 **1.26.4**（backend-ci.yml 会 `go version | grep go1.26.4` 校验）
+- Go 版本必须是 **1.26.5**（backend-ci.yml 会 `go version | grep go1.26.5` 校验）
 - golangci-lint 版本 **v2.9**（与 `.golangci.yml` 配置配套）
 - 前端使用 `pnpm install --frozen-lockfile`，必须提交 `pnpm-lock.yaml`
 
