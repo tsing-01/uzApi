@@ -321,6 +321,15 @@ func (s *AuthService) SendVerifyCode(ctx context.Context, email string, locale .
 	return s.emailService.SendVerifyCode(ctx, email, siteName, firstEmailLocale(locale))
 }
 
+// CheckVerifyCode 预检邮箱验证码（不消费），供注册页在提交前确认验证码有效。
+// 真正的消费仍发生在注册时的 VerifyCode。
+func (s *AuthService) CheckVerifyCode(ctx context.Context, email, code string) error {
+	if s.emailService == nil {
+		return ErrServiceUnavailable
+	}
+	return s.emailService.CheckVerifyCode(ctx, strings.TrimSpace(email), strings.TrimSpace(code))
+}
+
 // SendVerifyCodeAsync 异步发送邮箱验证码并返回倒计时
 func (s *AuthService) SendVerifyCodeAsync(ctx context.Context, email string, localeAndPurpose ...string) (*SendVerifyCodeResult, error) {
 	logger.LegacyPrintf("service.auth", "[Auth] SendVerifyCodeAsync called for email: %s", email)

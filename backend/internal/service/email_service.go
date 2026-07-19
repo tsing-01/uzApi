@@ -396,8 +396,18 @@ func (s *EmailService) SendVerifyCode(ctx context.Context, email, siteName strin
 	return nil
 }
 
-// VerifyCode 验证验证码
+// VerifyCode 验证验证码，验证成功后删除（一次性消费）
 func (s *EmailService) VerifyCode(ctx context.Context, email, code string) error {
+	return s.verifyCode(ctx, email, code, true)
+}
+
+// CheckVerifyCode 校验验证码但不消费，供注册页在提交前预检验证码。
+// 错误尝试仍然累计次数，防止暴力猜测。
+func (s *EmailService) CheckVerifyCode(ctx context.Context, email, code string) error {
+	return s.verifyCode(ctx, email, code, false)
+}
+
+func (s *EmailService) verifyCode(ctx context.Context, email, code string, consume bool) error {
 	data, err := s.cache.GetVerificationCode(ctx, email)
 	if err != nil || data == nil {
 		return ErrInvalidVerifyCode
@@ -422,6 +432,10 @@ func (s *EmailService) VerifyCode(ctx context.Context, email, code string) error
 			return ErrVerifyCodeMaxAttempts
 		}
 		return ErrInvalidVerifyCode
+	}
+
+	if !consume {
+		return nil
 	}
 
 	// 验证成功，删除验证码

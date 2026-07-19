@@ -458,6 +458,18 @@ export async function sendVerifyCode(
   return data
 }
 
+/**
+ * Pre-check an email verification code without consuming it.
+ * Used by the register page to enable the submit button only after the code is confirmed.
+ */
+export async function checkVerifyCode(request: {
+  email: string
+  verify_code: string
+}): Promise<{ valid: boolean }> {
+  const { data } = await apiClient.post<{ valid: boolean }>('/auth/check-verify-code', request)
+  return data
+}
+
 export async function sendPendingOAuthVerifyCode(
   request: SendVerifyCodeRequest
 ): Promise<PendingOAuthSendVerifyCodeResponse> {
@@ -674,6 +686,7 @@ export const authAPI = {
   clearAuthToken,
   getPublicSettings,
   sendVerifyCode,
+  checkVerifyCode,
   sendPendingOAuthVerifyCode,
   validatePromoCode,
   validateInvitationCode,

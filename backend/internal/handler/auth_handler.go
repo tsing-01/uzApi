@@ -70,6 +70,12 @@ type SendVerifyCodeResponse struct {
 	Countdown int    `json:"countdown"` // 倒计时秒数
 }
 
+// CheckVerifyCodeRequest 预检验证码请求
+type CheckVerifyCodeRequest struct {
+	Email      string `json:"email" binding:"required,email"`
+	VerifyCode string `json:"verify_code" binding:"required"`
+}
+
 // LoginRequest represents the login request payload
 type LoginRequest struct {
 	Email          string `json:"email" binding:"required,email"`
@@ -216,6 +222,23 @@ func (h *AuthHandler) SendVerifyCode(c *gin.Context) {
 		Message:   "Verification code sent successfully",
 		Countdown: result.Countdown,
 	})
+}
+
+// CheckVerifyCode 预检邮箱验证码（不消费），注册页用于在提交前点亮注册按钮
+// POST /api/v1/auth/check-verify-code
+func (h *AuthHandler) CheckVerifyCode(c *gin.Context) {
+	var req CheckVerifyCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+
+	if err := h.authService.CheckVerifyCode(c.Request.Context(), req.Email, req.VerifyCode); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	response.Success(c, gin.H{"valid": true})
 }
 
 // Login handles user login

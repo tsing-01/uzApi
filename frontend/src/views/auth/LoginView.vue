@@ -111,7 +111,6 @@
               :type="showPassword ? 'text' : 'password'"
               required
               minlength="8"
-              maxlength="16"
               autocomplete="current-password"
               :disabled="authActionDisabled"
               class="input pl-11 pr-11"
@@ -556,7 +555,7 @@ function validateEmailOnly(): boolean {
 }
 
 function isPasswordFormatValid(password: string): boolean {
-  return /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,16}$/.test(password)
+  return /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,}$/.test(password)
 }
 
 async function handleSendLoginCode(): Promise<void> {

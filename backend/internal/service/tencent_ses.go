@@ -17,20 +17,26 @@ import (
 )
 
 const (
-	tencentSESEndpoint = "https://ses.tencentcloudapi.com"
-	tencentSESService  = "ses"
-	tencentSESVersion  = "2020-10-02"
+	tencentSESService = "ses"
+	tencentSESVersion = "2020-10-02"
 )
+
+// tencentSESEndpoint is a var so tests can point requests at a local server.
+var tencentSESEndpoint = "https://ses.tencentcloudapi.com"
 
 // tencentSESConfig is intentionally environment-only.  SES access keys must
 // never be persisted in the settings table or checked into a configuration file.
 type tencentSESConfig struct {
-	SecretID         string
-	SecretKey        string
-	Region           string
-	From             string
-	TemplateID       int64
+	SecretID string
+	SecretKey string
+	Region   string
+	From     string
+	TemplateID int64
+	// TemplateVariable is the template placeholder that receives the OTP code.
+	// UsernameVariable receives a display name (we use the recipient's email).
+	// Both must match the variable names configured in the Tencent SES template.
 	TemplateVariable string
+	UsernameVariable string
 }
 
 func loadTencentSESConfig() (*tencentSESConfig, error) {
@@ -56,18 +62,28 @@ func loadTencentSESConfig() (*tencentSESConfig, error) {
 	}
 	variable := strings.TrimSpace(os.Getenv("TENCENT_SES_TEMPLATE_VARIABLE"))
 	if variable == "" {
-		variable = "code"
+		variable = "otp_code"
+	}
+	usernameVariable := strings.TrimSpace(os.Getenv("TENCENT_SES_TEMPLATE_USERNAME_VARIABLE"))
+	if usernameVariable == "" {
+		usernameVariable = "username"
 	}
 	return &tencentSESConfig{
 		SecretID: secretID, SecretKey: secretKey, Region: region, From: from,
-		TemplateID: templateID, TemplateVariable: variable,
+		TemplateID: templateID, TemplateVariable: variable, UsernameVariable: usernameVariable,
 	}, nil
 }
 
 // sendTencentSESVerifyCode sends only verification messages through Tencent SES.
 // Other mail (such as password reset) continues to use the configured SMTP path.
 func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *tencentSESConfig, to, siteName, code string) error {
-	templateData, err := json.Marshal(map[string]string{config.TemplateVariable: code})
+	// The username placeholder has no real name to show at signup, so we use the
+	// recipient's email address.
+	templateVars := map[string]string{config.TemplateVariable: code}
+	if config.UsernameVariable != "" {
+		templateVars[config.UsernameVariable] = to
+	}
+	templateData, err := json.Marshal(templateVars)
 	if err != nil {
 		return fmt.Errorf("marshal Tencent SES template data: %w", err)
 	}
@@ -124,6 +140,21 @@ func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *ten
 		return fmt.Errorf("tencent SES rejected email: %s", result.Response.Error.Code)
 	}
 	return nil
+}
+
+// SendTencentSESTestEmail sends a one-off verification-code email through
+// Tencent SES using the environment configuration. It exists for deployment
+// verification (cmd/sestest) and bypasses the Redis-backed code store.
+func SendTencentSESTestEmail(ctx context.Context, to, siteName, code string) error {
+	config, err := loadTencentSESConfig()
+	if err != nil {
+		return err
+	}
+	if config == nil {
+		return fmt.Errorf("tencent SES is not configured: set TENCENT_SES_SECRET_ID/SECRET_KEY/FROM/TEMPLATE_ID")
+	}
+	var s EmailService
+	return s.sendTencentSESVerifyCode(ctx, config, to, siteName, code)
 }
 
 func tencentSESAuthorization(config *tencentSESConfig, now time.Time, payload []byte) string {
