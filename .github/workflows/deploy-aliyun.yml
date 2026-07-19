@@ -57,7 +57,6 @@ jobs:
             COMMIT=${{ github.sha }}
             GOPROXY=https://goproxy.cn,direct
             GOSUMDB=sum.golang.google.cn
-            VITE_API_BASE_URL=https://api.uzapi.org/api/v1
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
