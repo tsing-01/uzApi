@@ -840,6 +840,39 @@ func TestValidateAbsoluteHTTPURL(t *testing.T) {
 	}
 }
 
+func TestCORSAllowedOriginsFromEnv(t *testing.T) {
+	resetViperWithJWTSecret(t)
+	t.Setenv("CORS_ALLOWED_ORIGINS", "https://uzapi.org, https://api.uzapi.org ,")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+
+	got := cfg.CORS.AllowedOrigins
+	want := map[string]bool{"https://uzapi.org": true, "https://api.uzapi.org": true}
+	if len(got) != len(want) {
+		t.Fatalf("expected %d origins, got %d: %v", len(want), len(got), got)
+	}
+	for _, o := range got {
+		if !want[o] {
+			t.Errorf("unexpected origin %q (whitespace/empty entries should be trimmed/dropped)", o)
+		}
+	}
+}
+
+func TestCORSAllowedOriginsEnvEmpty(t *testing.T) {
+	resetViperWithJWTSecret(t)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	if len(cfg.CORS.AllowedOrigins) != 0 {
+		t.Fatalf("expected no origins when CORS_ALLOWED_ORIGINS unset, got %v", cfg.CORS.AllowedOrigins)
+	}
+}
+
 func TestValidateServerFrontendURL(t *testing.T) {
 	resetViperWithJWTSecret(t)
 
