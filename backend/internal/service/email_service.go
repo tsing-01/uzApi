@@ -573,6 +573,20 @@ func (s *EmailService) SendPasswordResetEmail(ctx context.Context, email, siteNa
 	// Build full reset URL with URL-encoded token and email
 	fullResetURL := fmt.Sprintf("%s?email=%s&token=%s", resetURL, url.QueryEscape(email), url.QueryEscape(token))
 
+	// Tencent SES password-reset template is opt-in via TENCENT_SES_RESET_TEMPLATE_ID.
+	// When configured, reset emails go through SES (same channel as verify codes);
+	// otherwise we fall back to the templated/SMTP path below.
+	tencentSES, err := loadTencentSESConfig()
+	if err != nil {
+		return err
+	}
+	if tencentSES.ResetEnabled() {
+		if err := s.sendTencentSESPasswordReset(ctx, tencentSES, email, siteName, fullResetURL); err != nil {
+			return fmt.Errorf("send Tencent SES password reset email: %w", err)
+		}
+		return nil
+	}
+
 	if s.notificationEmailService != nil {
 		err := s.notificationEmailService.Send(ctx, NotificationEmailSendInput{
 			Event:          NotificationEmailEventAuthPasswordReset,

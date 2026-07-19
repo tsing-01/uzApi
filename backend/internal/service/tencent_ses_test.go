@@ -19,6 +19,9 @@ func setTencentSESEnv(t *testing.T, id, key, from, templateID string) {
 	t.Setenv("TENCENT_SES_TEMPLATE_ID", templateID)
 	t.Setenv("TENCENT_SES_REGION", "")
 	t.Setenv("TENCENT_SES_TEMPLATE_VARIABLE", "")
+	t.Setenv("TENCENT_SES_TEMPLATE_USERNAME_VARIABLE", "")
+	t.Setenv("TENCENT_SES_RESET_TEMPLATE_ID", "")
+	t.Setenv("TENCENT_SES_RESET_TEMPLATE_VARIABLE", "")
 }
 
 func TestLoadTencentSESConfig_NotConfigured(t *testing.T) {
@@ -68,6 +71,38 @@ func TestLoadTencentSESConfig_Defaults(t *testing.T) {
 	if cfg.TemplateID != 12345 {
 		t.Errorf("expected template id 12345, got %d", cfg.TemplateID)
 	}
+	// Reset template is opt-in: absent → disabled, variable defaults to reset_url.
+	if cfg.ResetEnabled() {
+		t.Errorf("reset should be disabled when TENCENT_SES_RESET_TEMPLATE_ID is unset")
+	}
+	if cfg.ResetTemplateVariable != "reset_url" {
+		t.Errorf("expected default reset variable reset_url, got %q", cfg.ResetTemplateVariable)
+	}
+}
+
+func TestLoadTencentSESConfig_ResetTemplate(t *testing.T) {
+	setTencentSESEnv(t, "AKIDexample", "secret", "noreply@example.com", "12345")
+	t.Setenv("TENCENT_SES_RESET_TEMPLATE_ID", "67890")
+
+	cfg, err := loadTencentSESConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.ResetEnabled() {
+		t.Fatal("reset should be enabled when reset template id is set")
+	}
+	if cfg.ResetTemplateID != 67890 {
+		t.Errorf("expected reset template id 67890, got %d", cfg.ResetTemplateID)
+	}
+}
+
+func TestLoadTencentSESConfig_InvalidResetTemplate(t *testing.T) {
+	setTencentSESEnv(t, "AKIDexample", "secret", "noreply@example.com", "12345")
+	t.Setenv("TENCENT_SES_RESET_TEMPLATE_ID", "not-a-number")
+
+	if _, err := loadTencentSESConfig(); err == nil {
+		t.Fatal("expected error for invalid reset template id")
+	}
 }
 
 func TestTencentSESAuthorization_Format(t *testing.T) {
@@ -116,6 +151,42 @@ func testTencentSESConfig() *tencentSESConfig {
 		SecretID: "AKIDexample", SecretKey: "secret", Region: "ap-guangzhou",
 		From: "noreply@example.com", TemplateID: 12345,
 		TemplateVariable: "otp_code", UsernameVariable: "username",
+	}
+}
+
+func TestSendTencentSESPasswordReset_Success(t *testing.T) {
+	var gotBody map[string]any
+	srv := newTencentSESTestServer(t, http.StatusOK, `{"Response":{"RequestId":"req-1","MessageId":"msg-1"}}`, &gotBody, nil)
+	defer srv.Close()
+	withTencentSESEndpoint(t, srv.URL)
+
+	cfg := testTencentSESConfig()
+	cfg.ResetTemplateID = 67890
+	cfg.ResetTemplateVariable = "reset_url"
+
+	resetURL := "https://uzapi.org/reset-password?email=user%40example.com&token=abc123"
+	svc := &EmailService{}
+	if err := svc.sendTencentSESPasswordReset(context.Background(), cfg, "user@example.com", "uzApi", resetURL); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	tmpl, _ := gotBody["Template"].(map[string]any)
+	if tmpl == nil || tmpl["TemplateID"] != float64(67890) {
+		t.Fatalf("expected reset template id 67890, got %v", gotBody["Template"])
+	}
+	templateDataStr, ok := tmpl["TemplateData"].(string)
+	if !ok {
+		t.Fatalf("TemplateData is not a string: %v", tmpl["TemplateData"])
+	}
+	var templateData map[string]string
+	if err := json.Unmarshal([]byte(templateDataStr), &templateData); err != nil {
+		t.Fatalf("failed to decode TemplateData: %v", err)
+	}
+	if templateData["reset_url"] != resetURL {
+		t.Errorf("expected reset_url %q, got %q", resetURL, templateData["reset_url"])
+	}
+	if templateData["username"] != "user@example.com" {
+		t.Errorf("expected username to be recipient email, got %q", templateData["username"])
 	}
 }
 

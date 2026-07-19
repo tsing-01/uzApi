@@ -37,6 +37,16 @@ type tencentSESConfig struct {
 	// Both must match the variable names configured in the Tencent SES template.
 	TemplateVariable string
 	UsernameVariable string
+	// ResetTemplateID / ResetTemplateVariable configure the password-reset email.
+	// When ResetTemplateID is 0 the reset flow keeps using the SMTP path.
+	// ResetTemplateVariable is the placeholder that receives the reset link.
+	ResetTemplateID       int64
+	ResetTemplateVariable string
+}
+
+// ResetEnabled reports whether password-reset emails should be sent via Tencent SES.
+func (c *tencentSESConfig) ResetEnabled() bool {
+	return c != nil && c.ResetTemplateID > 0
 }
 
 func loadTencentSESConfig() (*tencentSESConfig, error) {
@@ -68,14 +78,30 @@ func loadTencentSESConfig() (*tencentSESConfig, error) {
 	if usernameVariable == "" {
 		usernameVariable = "username"
 	}
+
+	// Password-reset template is optional. When unset/invalid, reset emails keep
+	// using the SMTP path (ResetTemplateID stays 0 → ResetEnabled() is false).
+	var resetTemplateID int64
+	if resetText := strings.TrimSpace(os.Getenv("TENCENT_SES_RESET_TEMPLATE_ID")); resetText != "" {
+		if id, convErr := strconv.ParseInt(resetText, 10, 64); convErr == nil && id > 0 {
+			resetTemplateID = id
+		} else {
+			return nil, fmt.Errorf("invalid TENCENT_SES_RESET_TEMPLATE_ID")
+		}
+	}
+	resetVariable := strings.TrimSpace(os.Getenv("TENCENT_SES_RESET_TEMPLATE_VARIABLE"))
+	if resetVariable == "" {
+		resetVariable = "reset_url"
+	}
+
 	return &tencentSESConfig{
 		SecretID: secretID, SecretKey: secretKey, Region: region, From: from,
 		TemplateID: templateID, TemplateVariable: variable, UsernameVariable: usernameVariable,
+		ResetTemplateID: resetTemplateID, ResetTemplateVariable: resetVariable,
 	}, nil
 }
 
-// sendTencentSESVerifyCode sends only verification messages through Tencent SES.
-// Other mail (such as password reset) continues to use the configured SMTP path.
+// sendTencentSESVerifyCode sends registration/login verification codes via Tencent SES.
 func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *tencentSESConfig, to, siteName, code string) error {
 	// The username placeholder has no real name to show at signup, so we use the
 	// recipient's email address.
@@ -83,6 +109,23 @@ func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *ten
 	if config.UsernameVariable != "" {
 		templateVars[config.UsernameVariable] = to
 	}
+	subject := fmt.Sprintf("[%s] Email Verification Code", siteName)
+	return s.sendTencentSESTemplate(ctx, config, to, subject, config.TemplateID, templateVars)
+}
+
+// sendTencentSESPasswordReset sends the password-reset email via Tencent SES using
+// the dedicated reset template. resetURL is the full link (with email+token).
+func (s *EmailService) sendTencentSESPasswordReset(ctx context.Context, config *tencentSESConfig, to, siteName, resetURL string) error {
+	templateVars := map[string]string{config.ResetTemplateVariable: resetURL}
+	if config.UsernameVariable != "" {
+		templateVars[config.UsernameVariable] = to
+	}
+	subject := fmt.Sprintf("[%s] Password Reset", siteName)
+	return s.sendTencentSESTemplate(ctx, config, to, subject, config.ResetTemplateID, templateVars)
+}
+
+// sendTencentSESTemplate posts a templated email to the Tencent SES SendEmail API.
+func (s *EmailService) sendTencentSESTemplate(ctx context.Context, config *tencentSESConfig, to, subject string, templateID int64, templateVars map[string]string) error {
 	templateData, err := json.Marshal(templateVars)
 	if err != nil {
 		return fmt.Errorf("marshal Tencent SES template data: %w", err)
@@ -90,9 +133,9 @@ func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *ten
 	payload, err := json.Marshal(map[string]any{
 		"FromEmailAddress": config.From,
 		"Destination":      []string{to},
-		"Subject":          fmt.Sprintf("[%s] Email Verification Code", siteName),
+		"Subject":          subject,
 		"Template": map[string]any{
-			"TemplateID":   config.TemplateID,
+			"TemplateID":   templateID,
 			"TemplateData": string(templateData),
 		},
 	})
