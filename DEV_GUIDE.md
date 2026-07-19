@@ -34,8 +34,8 @@
 ### 开发工具
 
 ```bash
-# golangci-lint v2.7
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7
+# golangci-lint v2.9（与 CI 一致）
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.9.0
 
 # pnpm (前端包管理)
 npm install -g pnpm
@@ -47,13 +47,14 @@ npm install -g pnpm
 
 | Workflow | 触发条件 | 检查内容 |
 |----------|----------|----------|
-| **backend-ci.yml** | push, pull_request | 单元测试 + 集成测试 + golangci-lint v2.7 |
+| **backend-ci.yml** | push, pull_request | 单元测试 + 集成测试 + golangci-lint v2.9 |
 | **security-scan.yml** | push, pull_request, 每周一 | govulncheck + gosec + pnpm audit |
 | **release.yml** | tag `v*` | 构建发布（PR 不触发） |
 
 ### CI 要求
 
-- Go 版本必须是 **1.25.7**
+- Go 版本必须是 **1.26.4**（backend-ci.yml 会 `go version | grep go1.26.4` 校验）
+- golangci-lint 版本 **v2.9**（与 `.golangci.yml` 配置配套）
 - 前端使用 `pnpm install --frozen-lockfile`，必须提交 `pnpm-lock.yaml`
 
 ### 本地测试命令
@@ -71,6 +72,38 @@ cd backend && golangci-lint run ./...
 # 前端依赖安装（必须用 pnpm）
 cd frontend && pnpm install
 ```
+
+### 提交前 / MR 前检查（推荐）
+
+为了在本地尽早发现 CI 会拦的问题（gofmt、golangci-lint、eslint、测试），提供两层检查：
+
+**1. 提交时自动检查（git pre-commit hook）**
+
+一次性启用（每个 clone 各执行一次，`core.hooksPath` 不随 git 传播）：
+
+```bash
+make setup-hooks        # 等价于 git config core.hooksPath scripts/hooks
+```
+
+启用后每次 `git commit` 会自动对**已暂存的文件**做快速检查：Go 文件跑 gofmt +
+相关包的 golangci-lint，前端文件跑 eslint。只查暂存文件、不跑测试，所以很快；
+发现问题会拦下提交。临时跳过：`git commit --no-verify`。
+
+**2. MR / push 前完整检查**
+
+复现三条 CI 流水线（Go 版本校验、gofmt、go vet、golangci-lint、单元/集成测试、
+前端 lint+typecheck+关键 vitest）：
+
+```bash
+make pre-mr-scan                        # 全套
+./scripts/pre-mr-scan.sh --backend      # 只后端
+./scripts/pre-mr-scan.sh --fix          # 自动 gofmt -w / eslint --fix 后再检查
+./scripts/pre-mr-scan.sh --skip-integration  # 跳过需要 Postgres+Redis 的集成测试
+./scripts/pre-mr-scan.sh --security     # 额外跑 govulncheck + pnpm audit
+```
+
+> 缺 golangci-lint 时脚本会自动 `go install ...@v2.9.0`。版本号集中在
+> `scripts/pre-mr-scan.sh` 顶部，升级 CI 时同步改一处即可。
 
 ## 四、常见坑点 & 解决方案
 
@@ -234,11 +267,12 @@ git add ent/       # 生成的文件也要提交
 
 ### 坑 11：PR 提交前检查清单
 
-提交 PR 前务必本地验证：
+提交 PR 前务必本地验证（可直接 `make pre-mr-scan` 一键跑前四项）：
 
 - [ ] `go test -tags=unit ./...` 通过
 - [ ] `go test -tags=integration ./...` 通过
 - [ ] `golangci-lint run ./...` 无新增问题
+- [ ] `gofmt -l backend/` 无输出（格式正确）
 - [ ] `pnpm-lock.yaml` 已同步（如果改了 package.json）
 - [ ] 所有 test stub 补全新接口方法（如果改了 interface）
 - [ ] Ent 生成的代码已提交（如果改了 schema）

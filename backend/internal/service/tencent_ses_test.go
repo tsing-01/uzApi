@@ -152,8 +152,12 @@ func TestSendTencentSESVerifyCode_Success(t *testing.T) {
 	if tmpl == nil || tmpl["TemplateID"] != float64(12345) {
 		t.Errorf("unexpected Template: %v", gotBody["Template"])
 	}
+	templateDataStr, ok := tmpl["TemplateData"].(string)
+	if !ok {
+		t.Fatalf("TemplateData is not a string: %v", tmpl["TemplateData"])
+	}
 	var templateData map[string]string
-	if err := json.Unmarshal([]byte(tmpl["TemplateData"].(string)), &templateData); err != nil {
+	if err := json.Unmarshal([]byte(templateDataStr), &templateData); err != nil {
 		t.Fatalf("failed to decode TemplateData: %v", err)
 	}
 	if templateData["otp_code"] != "654321" {

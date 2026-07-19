@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+#
+# pre-commit —— 提交前对「已暂存」的 Go / 前端文件做快速的格式 + lint 检查。
+# 目标是拦住 CI 上最常见的 gofmt、golangci-lint(errcheck 等)、eslint 问题，
+# 又不拖慢每次提交，所以：只检查暂存文件、且不跑测试。
+#
+# 完整检查（含单元/集成测试、typecheck、全量 lint）请用：
+#   scripts/pre-mr-scan.sh
+#
+# 临时跳过本 hook：git commit --no-verify
+#
+set -uo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+BACKEND="$ROOT/backend"
+FRONTEND="$ROOT/frontend"
+GOLANGCI_VERSION="v2.9.0"   # 与 scripts/pre-mr-scan.sh / CI 保持一致
+
+if [ -t 1 ]; then
+  RED=$'\033[31m'; GRN=$'\033[32m'; YLW=$'\033[33m'; BLD=$'\033[1m'; RST=$'\033[0m'
+else
+  RED=""; GRN=""; YLW=""; BLD=""; RST=""
+fi
+fail=0
+note() { printf '%spre-commit:%s %s\n' "$BLD" "$RST" "$1"; }
+bad()  { printf '%s  ✗ %s%s\n' "$RED" "$1" "$RST"; fail=1; }
+ok()   { printf '%s  ✓ %s%s\n' "$GRN" "$1" "$RST"; }
+
+# 暂存的、仍存在的 Go 文件（相对仓库根）。用 while-read 兼容 macOS 自带 bash 3.2。
+STAGED_GO=()
+while IFS= read -r line; do
+  [ -n "$line" ] && STAGED_GO+=("$line")
+done < <(git diff --cached --name-only --diff-filter=ACM -- '*.go')
+# 暂存的前端文件
+STAGED_FE=()
+while IFS= read -r line; do
+  [ -n "$line" ] && STAGED_FE+=("$line")
+done < <(git diff --cached --name-only --diff-filter=ACM -- 'frontend/**/*.vue' 'frontend/**/*.ts' 'frontend/**/*.tsx' 'frontend/**/*.js')
+
+# ---------------------------------------------------------------- Go 检查
+if [ "${#STAGED_GO[@]}" -gt 0 ]; then
+  note "检查 ${#STAGED_GO[@]} 个暂存的 Go 文件"
+
+  # 1) gofmt —— 只看暂存文件
+  unformatted=""
+  for f in "${STAGED_GO[@]}"; do
+    [ -f "$ROOT/$f" ] || continue
+    if [ -n "$(gofmt -l "$ROOT/$f")" ]; then
+      unformatted+="$f"$'\n'
+    fi
+  done
+  if [ -n "$unformatted" ]; then
+    bad "以下文件未按 gofmt 格式化，请运行 gofmt -w 后重新 add："
+    printf '      %s\n' $unformatted
+  else
+    ok "gofmt 通过"
+  fi
+
+  # 2) golangci-lint —— 只检查含暂存文件的 backend 包
+  pkgs=""
+  for f in "${STAGED_GO[@]}"; do
+    case "$f" in
+      backend/*)
+        d="./$(dirname "${f#backend/}")"
+        case " $pkgs " in *" $d "*) ;; *) pkgs+="$d " ;; esac
+        ;;
+    esac
+  done
+  if [ -n "$pkgs" ]; then
+    # 解析 golangci-lint：PATH -> GOBIN -> GOPATH/bin
+    LINT_BIN=""
+    if command -v golangci-lint >/dev/null 2>&1; then
+      LINT_BIN="$(command -v golangci-lint)"
+    else
+      for c in "$(go env GOBIN 2>/dev/null)/golangci-lint" "$(go env GOPATH 2>/dev/null)/bin/golangci-lint"; do
+        [ -x "$c" ] && LINT_BIN="$c" && break
+      done
+    fi
+    if [ -z "$LINT_BIN" ]; then
+      bad "未找到 golangci-lint，请先安装：go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_VERSION}"
+    elif ( cd "$BACKEND" && "$LINT_BIN" run $pkgs ); then
+      ok "golangci-lint 通过（${pkgs}）"
+    else
+      bad "golangci-lint 发现问题"
+    fi
+  fi
+fi
+
+# ---------------------------------------------------------------- 前端检查
+if [ "${#STAGED_FE[@]}" -gt 0 ]; then
+  note "检查 ${#STAGED_FE[@]} 个暂存的前端文件 (eslint)"
+  rel=()
+  for f in "${STAGED_FE[@]}"; do
+    [ -f "$ROOT/$f" ] && rel+=("${f#frontend/}")
+  done
+  if [ "${#rel[@]}" -gt 0 ]; then
+    if ( cd "$FRONTEND" && pnpm exec eslint "${rel[@]}" ); then
+      ok "eslint 通过"
+    else
+      bad "eslint 发现问题（可运行 pnpm --dir frontend run lint 自动修复）"
+    fi
+  fi
+fi
+
+# ---------------------------------------------------------------- 结果
+if [ "$fail" -ne 0 ]; then
+  printf '\n%s%s提交被拦截：请修复上述问题后重试，或用 git commit --no-verify 跳过。%s\n' "$BLD" "$RED" "$RST"
+  exit 1
+fi
+[ "${#STAGED_GO[@]}" -eq 0 ] && [ "${#STAGED_FE[@]}" -eq 0 ] && exit 0
+printf '%s%s暂存文件检查通过。%s\n' "$BLD" "$GRN" "$RST"
+exit 0

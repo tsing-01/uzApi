@@ -27,10 +27,10 @@ var tencentSESEndpoint = "https://ses.tencentcloudapi.com"
 // tencentSESConfig is intentionally environment-only.  SES access keys must
 // never be persisted in the settings table or checked into a configuration file.
 type tencentSESConfig struct {
-	SecretID string
-	SecretKey string
-	Region   string
-	From     string
+	SecretID   string
+	SecretKey  string
+	Region     string
+	From       string
 	TemplateID int64
 	// TemplateVariable is the template placeholder that receives the OTP code.
 	// UsernameVariable receives a display name (we use the recipient's email).

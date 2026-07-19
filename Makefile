@@ -1,4 +1,4 @@
-.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan
+.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan setup-hooks pre-mr-scan
 
 FRONTEND_CRITICAL_VITEST := \
 	src/views/auth/__tests__/LinuxDoCallbackView.spec.ts \
@@ -42,3 +42,12 @@ test-datamanagementd:
 
 secret-scan:
 	@python3 tools/secret_scan.py
+
+# 一次性启用 git 提交钩子（提交时自动对暂存文件做 gofmt / golangci-lint / eslint 检查）
+setup-hooks:
+	@git config core.hooksPath scripts/hooks
+	@echo "已启用 git hooks（core.hooksPath=scripts/hooks）。提交时会自动检查暂存文件。"
+
+# MR / push 前本地复现 CI 检查（gofmt + golangci-lint + 测试 + 前端）
+pre-mr-scan:
+	@./scripts/pre-mr-scan.sh
