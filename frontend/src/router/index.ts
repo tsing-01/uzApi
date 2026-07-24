@@ -157,6 +157,17 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    // Short reset link used by the Tencent SES template: /reset/{id}, where id is
+    // a URL-safe base64 blob encoding "email=..&token=..". Reuses ResetPasswordView.
+    path: '/reset/:id',
+    name: 'ResetPasswordById',
+    component: () => import('@/views/auth/ResetPasswordView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Reset Password'
+    }
+  },
+  {
     path: '/key-usage',
     name: 'KeyUsage',
     component: () => import('@/views/KeyUsageView.vue'),

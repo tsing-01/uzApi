@@ -75,8 +75,8 @@ func TestLoadTencentSESConfig_Defaults(t *testing.T) {
 	if cfg.ResetEnabled() {
 		t.Errorf("reset should be disabled when TENCENT_SES_RESET_TEMPLATE_ID is unset")
 	}
-	if cfg.ResetTemplateVariable != "reset_url" {
-		t.Errorf("expected default reset variable reset_url, got %q", cfg.ResetTemplateVariable)
+	if cfg.ResetTemplateVariable != "id" {
+		t.Errorf("expected default reset variable id, got %q", cfg.ResetTemplateVariable)
 	}
 }
 
@@ -162,11 +162,11 @@ func TestSendTencentSESPasswordReset_Success(t *testing.T) {
 
 	cfg := testTencentSESConfig()
 	cfg.ResetTemplateID = 67890
-	cfg.ResetTemplateVariable = "reset_url"
+	cfg.ResetTemplateVariable = "id"
 
-	resetURL := "https://uzapi.org/reset-password?email=user%40example.com&token=abc123"
+	resetID := "ZW1haWw9dXNlciU0MGV4YW1wbGUuY29tJnRva2VuPWFiYzEyMw"
 	svc := &EmailService{}
-	if err := svc.sendTencentSESPasswordReset(context.Background(), cfg, "user@example.com", "uzApi", resetURL); err != nil {
+	if err := svc.sendTencentSESPasswordReset(context.Background(), cfg, "user@example.com", "uzApi", resetID); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -182,8 +182,8 @@ func TestSendTencentSESPasswordReset_Success(t *testing.T) {
 	if err := json.Unmarshal([]byte(templateDataStr), &templateData); err != nil {
 		t.Fatalf("failed to decode TemplateData: %v", err)
 	}
-	if templateData["reset_url"] != resetURL {
-		t.Errorf("expected reset_url %q, got %q", resetURL, templateData["reset_url"])
+	if templateData["id"] != resetID {
+		t.Errorf("expected id %q, got %q", resetID, templateData["id"])
 	}
 	if templateData["username"] != "user@example.com" {
 		t.Errorf("expected username to be recipient email, got %q", templateData["username"])

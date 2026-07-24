@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log/slog"
@@ -581,7 +582,14 @@ func (s *EmailService) SendPasswordResetEmail(ctx context.Context, email, siteNa
 		return err
 	}
 	if tencentSES.ResetEnabled() {
-		if err := s.sendTencentSESPasswordReset(ctx, tencentSES, email, siteName, fullResetURL); err != nil {
+		// The reset template owns the fixed URL prefix (e.g. https://uzapi.org/reset/)
+		// and only receives {{id}}. Encode email+token into a URL-safe id that the
+		// frontend /reset/:id route decodes back into the email+token the reset page
+		// expects. Uses the same email+token pair the SMTP link carries.
+		resetID := base64.RawURLEncoding.EncodeToString(
+			[]byte(fmt.Sprintf("email=%s&token=%s", url.QueryEscape(email), url.QueryEscape(token))),
+		)
+		if err := s.sendTencentSESPasswordReset(ctx, tencentSES, email, siteName, resetID); err != nil {
 			return fmt.Errorf("send Tencent SES password reset email: %w", err)
 		}
 		return nil

@@ -252,10 +252,36 @@ const isInvalidLink = computed(() => !email.value || !token.value)
 
 // ==================== Lifecycle ====================
 
+// Decode the short-link id (/reset/:id): a URL-safe base64 blob of "email=..&token=..".
+function decodeResetId(id: string): { email: string; token: string } | null {
+  try {
+    let b64 = id.replace(/-/g, '+').replace(/_/g, '/')
+    while (b64.length % 4) b64 += '='
+    const params = new URLSearchParams(atob(b64))
+    const email = params.get('email') || ''
+    const token = params.get('token') || ''
+    if (!email || !token) return null
+    return { email, token }
+  } catch {
+    return null
+  }
+}
+
 onMounted(() => {
-  // Get email and token from URL query parameters
-  email.value = (route.query.email as string) || ''
-  token.value = (route.query.token as string) || ''
+  // Two link formats are supported:
+  //   /reset-password?email=..&token=..  (query params)
+  //   /reset/:id  where id encodes email+token (Tencent SES short-link template)
+  const idParam = (route.params.id as string) || ''
+  if (idParam) {
+    const decoded = decodeResetId(idParam)
+    if (decoded) {
+      email.value = decoded.email
+      token.value = decoded.token
+    }
+  } else {
+    email.value = (route.query.email as string) || ''
+    token.value = (route.query.token as string) || ''
+  }
 
   if (!email.value || !token.value) {
     appStore.showError(t('auth.invalidResetLink'))

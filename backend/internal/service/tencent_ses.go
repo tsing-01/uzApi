@@ -91,7 +91,7 @@ func loadTencentSESConfig() (*tencentSESConfig, error) {
 	}
 	resetVariable := strings.TrimSpace(os.Getenv("TENCENT_SES_RESET_TEMPLATE_VARIABLE"))
 	if resetVariable == "" {
-		resetVariable = "reset_url"
+		resetVariable = "id"
 	}
 
 	return &tencentSESConfig{
@@ -114,9 +114,10 @@ func (s *EmailService) sendTencentSESVerifyCode(ctx context.Context, config *ten
 }
 
 // sendTencentSESPasswordReset sends the password-reset email via Tencent SES using
-// the dedicated reset template. resetURL is the full link (with email+token).
-func (s *EmailService) sendTencentSESPasswordReset(ctx context.Context, config *tencentSESConfig, to, siteName, resetURL string) error {
-	templateVars := map[string]string{config.ResetTemplateVariable: resetURL}
+// the dedicated reset template. resetIDValue is the value placed into the template's
+// reset variable (default {{id}}); the template owns the fixed URL prefix.
+func (s *EmailService) sendTencentSESPasswordReset(ctx context.Context, config *tencentSESConfig, to, siteName, resetIDValue string) error {
+	templateVars := map[string]string{config.ResetTemplateVariable: resetIDValue}
 	if config.UsernameVariable != "" {
 		templateVars[config.UsernameVariable] = to
 	}
