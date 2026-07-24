@@ -5960,6 +5960,8 @@ export default {
         visibility: '可见角色',
         visibilityUser: '普通用户',
         visibilityAdmin: '管理员',
+        openExternal: '外部跳转（新标签打开）',
+        openExternalHint: '开启后点击菜单直接在新标签打开链接；关闭则在页面内 iframe 嵌入。目标站点拒绝被嵌入时请开启。',
         add: '添加菜单项',
         remove: '删除',
         moveUp: '上移',

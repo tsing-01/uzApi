@@ -5804,6 +5804,8 @@ export default {
         visibility: 'Visible To',
         visibilityUser: 'Regular Users',
         visibilityAdmin: 'Administrators',
+        openExternal: 'Open externally (new tab)',
+        openExternalHint: 'When on, clicking the menu opens the link in a new tab; when off, it embeds the page in an iframe. Enable this when the target site refuses to be embedded.',
         add: 'Add Menu Item',
         remove: 'Remove',
         moveUp: 'Move Up',

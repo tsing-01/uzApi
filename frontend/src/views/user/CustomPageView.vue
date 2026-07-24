@@ -76,6 +76,27 @@
           ></div>
         </div>
 
+        <!-- External link mode: open directly in a new tab (no iframe) -->
+        <div v-else-if="isLinkMode" class="flex h-full items-center justify-center p-10 text-center">
+          <div class="max-w-md">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700">
+              <Icon name="externalLink" size="lg" class="text-gray-400" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ menuItem?.label }}
+            </h3>
+            <a
+              :href="externalLinkUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-primary mt-4 inline-flex items-center"
+            >
+              <Icon name="externalLink" size="sm" class="mr-1.5" :stroke-width="2" />
+              {{ t('customPage.openInNewTab') }}
+            </a>
+          </div>
+        </div>
+
         <!-- URL not configured -->
         <div v-else-if="!isValidUrl" class="flex h-full items-center justify-center p-10 text-center">
           <div class="max-w-md">
@@ -172,8 +193,19 @@ const markdownSlug = computed(() => {
 
 const isMarkdownMode = computed(() => !!markdownSlug.value)
 
+// open_external → open directly in a new tab instead of embedding (for sites that
+// refuse iframe framing). The sidebar already renders these as external links, so
+// this only covers direct navigation to /custom/:id.
+const externalLinkUrl = computed(() => {
+  const item = menuItem.value
+  if (!item?.open_external) return ''
+  const url = (item.url ?? '').trim()
+  return url.startsWith('http://') || url.startsWith('https://') ? url : ''
+})
+const isLinkMode = computed(() => !!externalLinkUrl.value)
+
 const embeddedUrl = computed(() => {
-  if (!menuItem.value || isMarkdownMode.value) return ''
+  if (!menuItem.value || isMarkdownMode.value || isLinkMode.value) return ''
   return buildEmbeddedUrl(
     menuItem.value.url,
     authStore.user?.id,

@@ -101,12 +101,16 @@
             </span>
           </div>
 
-          <router-link
+          <component
+            :is="item.href ? 'a' : 'router-link'"
             v-for="item in personalNavItems"
             :key="item.path"
-            :to="item.path"
+            :to="item.href ? undefined : item.path"
+            :href="item.href"
+            :target="item.href ? '_blank' : undefined"
+            :rel="item.href ? 'noopener noreferrer' : undefined"
             class="sidebar-link mb-1"
-            :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
+            :class="{ 'sidebar-link-active': !item.href && isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
             :title="sidebarCollapsed ? item.label : undefined"
             :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
             @click="handleMenuItemClick(item.path)"
@@ -114,19 +118,23 @@
             <span v-if="item.iconSvg" class="h-5 w-5 flex-shrink-0 sidebar-svg-icon" v-html="sanitizeSvg(item.iconSvg)"></span>
             <component v-else :is="item.icon" class="h-5 w-5 flex-shrink-0" />
             <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{ item.label }}</span>
-          </router-link>
+          </component>
         </div>
       </template>
 
       <!-- Regular User View -->
       <template v-else-if="!appStore.backendModeEnabled">
         <div class="sidebar-section">
-          <router-link
+          <component
+            :is="item.href ? 'a' : 'router-link'"
             v-for="item in userNavItems"
             :key="item.path"
-            :to="item.path"
+            :to="item.href ? undefined : item.path"
+            :href="item.href"
+            :target="item.href ? '_blank' : undefined"
+            :rel="item.href ? 'noopener noreferrer' : undefined"
             class="sidebar-link mb-1"
-            :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
+            :class="{ 'sidebar-link-active': !item.href && isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
             :title="sidebarCollapsed ? item.label : undefined"
             :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
             @click="handleMenuItemClick(item.path)"
@@ -134,7 +142,7 @@
             <span v-if="item.iconSvg" class="h-5 w-5 flex-shrink-0 sidebar-svg-icon" v-html="sanitizeSvg(item.iconSvg)"></span>
             <component v-else :is="item.icon" class="h-5 w-5 flex-shrink-0" />
             <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{ item.label }}</span>
-          </router-link>
+          </component>
         </div>
       </template>
     </nav>
@@ -194,6 +202,12 @@ interface NavItem {
   icon: unknown
   iconSvg?: string
   hideInSimpleMode?: boolean
+  /**
+   * External URL. When set, the item renders as an <a target="_blank"> that opens
+   * directly in a new tab instead of navigating in-app (used by custom menu items
+   * whose url uses the `link:` prefix, e.g. sites that refuse iframe embedding).
+   */
+  href?: string
   children?: NavItem[]
   /**
    * When true, the parent item only toggles the expand/collapse state and
@@ -680,6 +694,9 @@ function buildSelfNavItems(withDashboard: boolean): NavItem[] {
       label: item.label,
       icon: null,
       iconSvg: item.icon_svg,
+      // open_external → open the URL directly in a new tab (bypasses the iframe,
+      // for sites that refuse embedding). Otherwise navigate to the iframe page.
+      href: item.open_external ? item.url : undefined,
     })),
   )
   return items

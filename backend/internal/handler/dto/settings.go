@@ -16,6 +16,9 @@ type CustomMenuItem struct {
 	PageSlug   string `json:"page_slug,omitempty"`
 	Visibility string `json:"visibility"` // "user" or "admin"
 	SortOrder  int    `json:"sort_order"`
+	// OpenExternal true 时，前端直接在新标签打开 URL（外部跳转），不走 iframe 内嵌。
+	// 用于目标站点拒绝被 iframe 嵌入的情况。默认 false = 内嵌。
+	OpenExternal bool `json:"open_external,omitempty"`
 }
 
 // CustomEndpoint represents an admin-configured API endpoint for quick copy.

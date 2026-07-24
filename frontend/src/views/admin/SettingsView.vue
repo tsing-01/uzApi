@@ -4934,6 +4934,24 @@
                     />
                   </div>
 
+                  <!-- Open mode: external jump vs iframe embed -->
+                  <div
+                    class="sm:col-span-2 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-dark-700/40"
+                  >
+                    <div class="pr-3">
+                      <div class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        {{ t("admin.settings.customMenu.openExternal") }}
+                      </div>
+                      <div class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
+                        {{ t("admin.settings.customMenu.openExternalHint") }}
+                      </div>
+                    </div>
+                    <Toggle
+                      :model-value="item.open_external ?? false"
+                      @update:model-value="(v: boolean) => (item.open_external = v)"
+                    />
+                  </div>
+
                   <!-- SVG Icon (full width) -->
                   <div class="sm:col-span-2">
                     <label
@@ -7771,6 +7789,7 @@ function addMenuItem() {
     url: "",
     visibility: "user",
     sort_order: form.custom_menu_items.length,
+    open_external: false,
   });
 }
 

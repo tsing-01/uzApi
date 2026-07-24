@@ -175,6 +175,8 @@ export interface CustomMenuItem {
   page_slug?: string
   visibility: 'user' | 'admin'
   sort_order: number
+  /** true = 外部跳转（新标签打开 URL），false/未设 = iframe 内嵌。 */
+  open_external?: boolean
 }
 
 export interface CustomEndpoint {
