@@ -228,6 +228,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/activation-code',
+    name: 'ActivationCode',
+    component: () => import('@/views/user/ActivationCodeView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Activation Code',
+      titleKey: 'activation.title',
+      descriptionKey: 'activation.description'
+    }
+  },
+  {
     path: '/redeem',
     name: 'Redeem',
     component: () => import('@/views/user/RedeemView.vue'),
@@ -548,6 +560,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/activation-codes',
+    name: 'AdminActivationCodes',
+    component: () => import('@/views/admin/ActivationCodesView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Activation Code Management',
+      titleKey: 'admin.activation.title',
+      descriptionKey: 'admin.activation.description'
+    }
+  },
+  {
     path: '/admin/settings',
     name: 'AdminSettings',
     component: () => import('@/views/admin/SettingsView.vue'),
@@ -842,8 +866,10 @@ router.beforeEach(async (to, _from, next) => {
       '/admin/groups',
       '/admin/subscriptions',
       '/admin/redeem',
+      '/admin/activation-codes',
       '/subscriptions',
-      '/redeem'
+      '/redeem',
+      '/activation-code'
     ]
 
     if (restrictedPaths.some((path) => to.path.startsWith(path))) {

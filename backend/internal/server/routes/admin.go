@@ -49,6 +49,7 @@ func RegisterAdminRoutes(
 
 		// 优惠码管理
 		registerPromoCodeRoutes(admin, h)
+		registerActivationCodeRoutes(admin, h)
 
 		// 系统设置
 		registerSettingsRoutes(admin, h)
@@ -246,6 +247,8 @@ func registerUserManagementRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		users.POST("/:id/platform-quotas/reset", h.Admin.User.ResetUserPlatformQuotaWindow)
 
 		// User attribute values
+		users.GET("/:id/login-ips", h.Admin.ActivationCode.ListUserLoginIPs)
+		users.DELETE("/:id/login-ips", h.Admin.ActivationCode.ResetUserLoginIPs)
 		users.GET("/:id/attributes", h.Admin.UserAttribute.GetUserAttributes)
 		users.PUT("/:id/attributes", h.Admin.UserAttribute.UpdateUserAttributes)
 	}
@@ -413,6 +416,17 @@ func registerPromoCodeRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		promoCodes.PUT("/:id", h.Admin.Promo.Update)
 		promoCodes.DELETE("/:id", h.Admin.Promo.Delete)
 		promoCodes.GET("/:id/usages", h.Admin.Promo.GetUsages)
+	}
+}
+
+func registerActivationCodeRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	activationCodes := admin.Group("/activation-codes")
+	{
+		activationCodes.GET("", h.Admin.ActivationCode.List)
+		activationCodes.GET("/:id", h.Admin.ActivationCode.GetByID)
+		activationCodes.POST("", h.Admin.ActivationCode.Create)
+		activationCodes.PUT("/:id", h.Admin.ActivationCode.Update)
+		activationCodes.DELETE("/:id", h.Admin.ActivationCode.Delete)
 	}
 }
 

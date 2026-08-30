@@ -7,6 +7,7 @@ import (
 
 	"github.com/uzapi/ent/account"
 	"github.com/uzapi/ent/accountgroup"
+	"github.com/uzapi/ent/activationcode"
 	"github.com/uzapi/ent/announcement"
 	"github.com/uzapi/ent/announcementread"
 	"github.com/uzapi/ent/apikey"
@@ -39,6 +40,7 @@ import (
 	"github.com/uzapi/ent/userallowedgroup"
 	"github.com/uzapi/ent/userattributedefinition"
 	"github.com/uzapi/ent/userattributevalue"
+	"github.com/uzapi/ent/userloginip"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/ent/usersubscription"
 	"github.com/uzapi/internal/domain"
@@ -262,6 +264,46 @@ func init() {
 	accountgroupDescCreatedAt := accountgroupFields[3].Descriptor()
 	// accountgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
 	accountgroup.DefaultCreatedAt = accountgroupDescCreatedAt.Default.(func() time.Time)
+	activationcodeFields := schema.ActivationCode{}.Fields()
+	_ = activationcodeFields
+	// activationcodeDescCode is the schema descriptor for code field.
+	activationcodeDescCode := activationcodeFields[0].Descriptor()
+	// activationcode.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	activationcode.CodeValidator = func() func(string) error {
+		validators := activationcodeDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// activationcodeDescAmount is the schema descriptor for amount field.
+	activationcodeDescAmount := activationcodeFields[1].Descriptor()
+	// activationcode.DefaultAmount holds the default value on creation for the amount field.
+	activationcode.DefaultAmount = activationcodeDescAmount.Default.(float64)
+	// activationcodeDescStatus is the schema descriptor for status field.
+	activationcodeDescStatus := activationcodeFields[2].Descriptor()
+	// activationcode.DefaultStatus holds the default value on creation for the status field.
+	activationcode.DefaultStatus = activationcodeDescStatus.Default.(string)
+	// activationcode.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	activationcode.StatusValidator = activationcodeDescStatus.Validators[0].(func(string) error)
+	// activationcodeDescCreatedAt is the schema descriptor for created_at field.
+	activationcodeDescCreatedAt := activationcodeFields[8].Descriptor()
+	// activationcode.DefaultCreatedAt holds the default value on creation for the created_at field.
+	activationcode.DefaultCreatedAt = activationcodeDescCreatedAt.Default.(func() time.Time)
+	// activationcodeDescUpdatedAt is the schema descriptor for updated_at field.
+	activationcodeDescUpdatedAt := activationcodeFields[9].Descriptor()
+	// activationcode.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	activationcode.DefaultUpdatedAt = activationcodeDescUpdatedAt.Default.(func() time.Time)
+	// activationcode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	activationcode.UpdateDefaultUpdatedAt = activationcodeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	announcementFields := schema.Announcement{}.Fields()
 	_ = announcementFields
 	// announcementDescTitle is the schema descriptor for title field.
@@ -2002,6 +2044,36 @@ func init() {
 	userattributevalueDescValue := userattributevalueFields[2].Descriptor()
 	// userattributevalue.DefaultValue holds the default value on creation for the value field.
 	userattributevalue.DefaultValue = userattributevalueDescValue.Default.(string)
+	userloginipFields := schema.UserLoginIP{}.Fields()
+	_ = userloginipFields
+	// userloginipDescIP is the schema descriptor for ip field.
+	userloginipDescIP := userloginipFields[1].Descriptor()
+	// userloginip.IPValidator is a validator for the "ip" field. It is called by the builders before save.
+	userloginip.IPValidator = func() func(string) error {
+		validators := userloginipDescIP.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(ip string) error {
+			for _, fn := range fns {
+				if err := fn(ip); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// userloginipDescCreatedAt is the schema descriptor for created_at field.
+	userloginipDescCreatedAt := userloginipFields[2].Descriptor()
+	// userloginip.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userloginip.DefaultCreatedAt = userloginipDescCreatedAt.Default.(func() time.Time)
+	// userloginipDescLastSeenAt is the schema descriptor for last_seen_at field.
+	userloginipDescLastSeenAt := userloginipFields[3].Descriptor()
+	// userloginip.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
+	userloginip.DefaultLastSeenAt = userloginipDescLastSeenAt.Default.(func() time.Time)
+	// userloginip.UpdateDefaultLastSeenAt holds the default value on update for the last_seen_at field.
+	userloginip.UpdateDefaultLastSeenAt = userloginipDescLastSeenAt.UpdateDefault.(func() time.Time)
 	userplatformquotaMixin := schema.UserPlatformQuota{}.Mixin()
 	userplatformquotaMixinHooks1 := userplatformquotaMixin[1].Hooks()
 	userplatformquota.Hooks[0] = userplatformquotaMixinHooks1[0]

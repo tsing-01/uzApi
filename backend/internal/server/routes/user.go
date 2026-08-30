@@ -113,6 +113,13 @@ func RegisterUserRoutes(
 			redeem.GET("/history", h.Redeem.GetHistory)
 		}
 
+		// 激活码（用户侧）
+		activation := authenticated.Group("/activation-code")
+		{
+			activation.GET("/verify", h.ActivationCode.Verify)
+			activation.POST("", h.ActivationCode.Add)
+		}
+
 		// 用户订阅
 		subscriptions := authenticated.Group("/subscriptions")
 		{

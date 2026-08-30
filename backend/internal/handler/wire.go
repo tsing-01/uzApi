@@ -23,6 +23,7 @@ func ProvideAdminHandlers(
 	proxyHandler *admin.ProxyHandler,
 	redeemHandler *admin.RedeemHandler,
 	promoHandler *admin.PromoHandler,
+	activationCodeHandler *admin.ActivationCodeHandler,
 	settingHandler *admin.SettingHandler,
 	opsHandler *admin.OpsHandler,
 	systemHandler *admin.SystemHandler,
@@ -55,6 +56,7 @@ func ProvideAdminHandlers(
 		Proxy:                  proxyHandler,
 		Redeem:                 redeemHandler,
 		Promo:                  promoHandler,
+		ActivationCode:         activationCodeHandler,
 		Setting:                settingHandler,
 		Ops:                    opsHandler,
 		System:                 systemHandler,
@@ -112,6 +114,7 @@ func ProvideHandlers(
 	paymentWebhookHandler *PaymentWebhookHandler,
 	availableChannelHandler *AvailableChannelHandler,
 	integrationHandler *IntegrationHandler,
+	activationCodeHandler *ActivationCodeHandler,
 	_ *service.IdempotencyCoordinator,
 	_ *service.IdempotencyCleanupService,
 ) *Handlers {
@@ -133,6 +136,7 @@ func ProvideHandlers(
 		PaymentWebhook:   paymentWebhookHandler,
 		AvailableChannel: availableChannelHandler,
 		Integration:      integrationHandler,
+		ActivationCode:   activationCodeHandler,
 	}
 }
 
@@ -155,6 +159,7 @@ var ProviderSet = wire.NewSet(
 	NewPaymentWebhookHandler,
 	NewAvailableChannelHandler,
 	NewIntegrationHandler,
+	NewActivationCodeHandler,
 
 	// Admin handlers
 	admin.NewDashboardHandler,
@@ -171,6 +176,7 @@ var ProviderSet = wire.NewSet(
 	admin.NewProxyHandler,
 	admin.NewRedeemHandler,
 	admin.NewPromoHandler,
+	admin.NewActivationCodeHandler,
 	ProvideAdminSettingHandler,
 	admin.NewOpsHandler,
 	ProvideSystemHandler,

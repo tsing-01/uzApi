@@ -27,13 +27,14 @@ type AuthHandler struct {
 	redeemService        *service.RedeemService
 	totpService          *service.TotpService
 	userAttributeService *service.UserAttributeService
+	activationService    *service.ActivationCodeService
 
 	dingTalkClientInstance *DingTalkClient
 	dingTalkClientMu       sync.Mutex
 }
 
 // NewAuthHandler creates a new AuthHandler
-func NewAuthHandler(cfg *config.Config, authService *service.AuthService, userService *service.UserService, settingService *service.SettingService, promoService *service.PromoService, redeemService *service.RedeemService, totpService *service.TotpService, userAttributeService *service.UserAttributeService) *AuthHandler {
+func NewAuthHandler(cfg *config.Config, authService *service.AuthService, userService *service.UserService, settingService *service.SettingService, promoService *service.PromoService, redeemService *service.RedeemService, totpService *service.TotpService, userAttributeService *service.UserAttributeService, activationService *service.ActivationCodeService) *AuthHandler {
 	return &AuthHandler{
 		cfg:                  cfg,
 		authService:          authService,
@@ -43,6 +44,7 @@ func NewAuthHandler(cfg *config.Config, authService *service.AuthService, userSe
 		redeemService:        redeemService,
 		totpService:          totpService,
 		userAttributeService: userAttributeService,
+		activationService:    activationService,
 	}
 }
 
@@ -112,6 +114,11 @@ func (h *AuthHandler) respondWithTokenPair(c *gin.Context, user *service.User) {
 		return
 	}
 
+	// 激活码有效性 + 登录 IP 数量限制（未绑定激活码的用户与管理员不受影响）
+	if !h.guardActivationLogin(c, user) {
+		return
+	}
+
 	tokenPair, err := h.authService.GenerateTokenPair(c.Request.Context(), user, "")
 	if err != nil {
 		slog.Error("failed to generate token pair", "error", err, "user_id", user.ID)
@@ -135,6 +142,25 @@ func (h *AuthHandler) respondWithTokenPair(c *gin.Context, user *service.User) {
 		TokenType:    "Bearer",
 		User:         dto.UserFromService(user),
 	})
+}
+
+// activationLoginCheck 在签发登录凭证前校验激活码有效性与登录 IP 数量。
+// 未绑定过激活码的用户与管理员始终放行。
+func (h *AuthHandler) activationLoginCheck(c *gin.Context, user *service.User) error {
+	if h == nil || h.activationService == nil || user == nil {
+		return nil
+	}
+	return h.activationService.EnsureLoginAllowed(c.Request.Context(), user, ip.GetClientIP(c))
+}
+
+// guardActivationLogin 是 activationLoginCheck 的 JSON 流程包装：校验失败时写入错误
+// 响应并返回 false，调用方直接 return 即可。
+func (h *AuthHandler) guardActivationLogin(c *gin.Context, user *service.User) bool {
+	if err := h.activationLoginCheck(c, user); err != nil {
+		response.ErrorFrom(c, err)
+		return false
+	}
+	return true
 }
 
 func (h *AuthHandler) ensureBackendModeAllowsUser(ctx context.Context, user *service.User) error {

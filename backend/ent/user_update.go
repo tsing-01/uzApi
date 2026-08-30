@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/uzapi/ent/activationcode"
 	"github.com/uzapi/ent/announcementread"
 	"github.com/uzapi/ent/apikey"
 	"github.com/uzapi/ent/authidentity"
@@ -23,6 +24,7 @@ import (
 	"github.com/uzapi/ent/usagelog"
 	"github.com/uzapi/ent/user"
 	"github.com/uzapi/ent/userattributevalue"
+	"github.com/uzapi/ent/userloginip"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/ent/usersubscription"
 )
@@ -606,6 +608,36 @@ func (_u *UserUpdate) AddPlatformQuotas(v ...*UserPlatformQuota) *UserUpdate {
 	return _u.AddPlatformQuotaIDs(ids...)
 }
 
+// AddActivationCodeIDs adds the "activation_codes" edge to the ActivationCode entity by IDs.
+func (_u *UserUpdate) AddActivationCodeIDs(ids ...int64) *UserUpdate {
+	_u.mutation.AddActivationCodeIDs(ids...)
+	return _u
+}
+
+// AddActivationCodes adds the "activation_codes" edges to the ActivationCode entity.
+func (_u *UserUpdate) AddActivationCodes(v ...*ActivationCode) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddActivationCodeIDs(ids...)
+}
+
+// AddLoginIPIDs adds the "login_ips" edge to the UserLoginIP entity by IDs.
+func (_u *UserUpdate) AddLoginIPIDs(ids ...int64) *UserUpdate {
+	_u.mutation.AddLoginIPIDs(ids...)
+	return _u
+}
+
+// AddLoginIps adds the "login_ips" edges to the UserLoginIP entity.
+func (_u *UserUpdate) AddLoginIps(v ...*UserLoginIP) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLoginIPIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -882,6 +914,48 @@ func (_u *UserUpdate) RemovePlatformQuotas(v ...*UserPlatformQuota) *UserUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePlatformQuotaIDs(ids...)
+}
+
+// ClearActivationCodes clears all "activation_codes" edges to the ActivationCode entity.
+func (_u *UserUpdate) ClearActivationCodes() *UserUpdate {
+	_u.mutation.ClearActivationCodes()
+	return _u
+}
+
+// RemoveActivationCodeIDs removes the "activation_codes" edge to ActivationCode entities by IDs.
+func (_u *UserUpdate) RemoveActivationCodeIDs(ids ...int64) *UserUpdate {
+	_u.mutation.RemoveActivationCodeIDs(ids...)
+	return _u
+}
+
+// RemoveActivationCodes removes "activation_codes" edges to ActivationCode entities.
+func (_u *UserUpdate) RemoveActivationCodes(v ...*ActivationCode) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveActivationCodeIDs(ids...)
+}
+
+// ClearLoginIps clears all "login_ips" edges to the UserLoginIP entity.
+func (_u *UserUpdate) ClearLoginIps() *UserUpdate {
+	_u.mutation.ClearLoginIps()
+	return _u
+}
+
+// RemoveLoginIPIDs removes the "login_ips" edge to UserLoginIP entities by IDs.
+func (_u *UserUpdate) RemoveLoginIPIDs(ids ...int64) *UserUpdate {
+	_u.mutation.RemoveLoginIPIDs(ids...)
+	return _u
+}
+
+// RemoveLoginIps removes "login_ips" edges to UserLoginIP entities.
+func (_u *UserUpdate) RemoveLoginIps(v ...*UserLoginIP) *UserUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLoginIPIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1669,6 +1743,96 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ActivationCodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedActivationCodesIDs(); len(nodes) > 0 && !_u.mutation.ActivationCodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ActivationCodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LoginIpsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLoginIpsIDs(); len(nodes) > 0 && !_u.mutation.LoginIpsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LoginIpsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -2255,6 +2419,36 @@ func (_u *UserUpdateOne) AddPlatformQuotas(v ...*UserPlatformQuota) *UserUpdateO
 	return _u.AddPlatformQuotaIDs(ids...)
 }
 
+// AddActivationCodeIDs adds the "activation_codes" edge to the ActivationCode entity by IDs.
+func (_u *UserUpdateOne) AddActivationCodeIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.AddActivationCodeIDs(ids...)
+	return _u
+}
+
+// AddActivationCodes adds the "activation_codes" edges to the ActivationCode entity.
+func (_u *UserUpdateOne) AddActivationCodes(v ...*ActivationCode) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddActivationCodeIDs(ids...)
+}
+
+// AddLoginIPIDs adds the "login_ips" edge to the UserLoginIP entity by IDs.
+func (_u *UserUpdateOne) AddLoginIPIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.AddLoginIPIDs(ids...)
+	return _u
+}
+
+// AddLoginIps adds the "login_ips" edges to the UserLoginIP entity.
+func (_u *UserUpdateOne) AddLoginIps(v ...*UserLoginIP) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLoginIPIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -2531,6 +2725,48 @@ func (_u *UserUpdateOne) RemovePlatformQuotas(v ...*UserPlatformQuota) *UserUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePlatformQuotaIDs(ids...)
+}
+
+// ClearActivationCodes clears all "activation_codes" edges to the ActivationCode entity.
+func (_u *UserUpdateOne) ClearActivationCodes() *UserUpdateOne {
+	_u.mutation.ClearActivationCodes()
+	return _u
+}
+
+// RemoveActivationCodeIDs removes the "activation_codes" edge to ActivationCode entities by IDs.
+func (_u *UserUpdateOne) RemoveActivationCodeIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.RemoveActivationCodeIDs(ids...)
+	return _u
+}
+
+// RemoveActivationCodes removes "activation_codes" edges to ActivationCode entities.
+func (_u *UserUpdateOne) RemoveActivationCodes(v ...*ActivationCode) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveActivationCodeIDs(ids...)
+}
+
+// ClearLoginIps clears all "login_ips" edges to the UserLoginIP entity.
+func (_u *UserUpdateOne) ClearLoginIps() *UserUpdateOne {
+	_u.mutation.ClearLoginIps()
+	return _u
+}
+
+// RemoveLoginIPIDs removes the "login_ips" edge to UserLoginIP entities by IDs.
+func (_u *UserUpdateOne) RemoveLoginIPIDs(ids ...int64) *UserUpdateOne {
+	_u.mutation.RemoveLoginIPIDs(ids...)
+	return _u
+}
+
+// RemoveLoginIps removes "login_ips" edges to UserLoginIP entities.
+func (_u *UserUpdateOne) RemoveLoginIps(v ...*UserLoginIP) *UserUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLoginIPIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -3341,6 +3577,96 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userplatformquota.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ActivationCodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedActivationCodesIDs(); len(nodes) > 0 && !_u.mutation.ActivationCodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ActivationCodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LoginIpsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLoginIpsIDs(); len(nodes) > 0 && !_u.mutation.LoginIpsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LoginIpsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

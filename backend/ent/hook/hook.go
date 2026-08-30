@@ -45,6 +45,18 @@ func (f AccountGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountGroupMutation", m)
 }
 
+// The ActivationCodeFunc type is an adapter to allow the use of ordinary
+// function as ActivationCode mutator.
+type ActivationCodeFunc func(context.Context, *ent.ActivationCodeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActivationCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ActivationCodeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ActivationCodeMutation", m)
+}
+
 // The AnnouncementFunc type is an adapter to allow the use of ordinary
 // function as Announcement mutator.
 type AnnouncementFunc func(context.Context, *ent.AnnouncementMutation) (ent.Value, error)
@@ -403,6 +415,18 @@ func (f UserAttributeValueFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserAttributeValueMutation", m)
+}
+
+// The UserLoginIPFunc type is an adapter to allow the use of ordinary
+// function as UserLoginIP mutator.
+type UserLoginIPFunc func(context.Context, *ent.UserLoginIPMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserLoginIPFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserLoginIPMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserLoginIPMutation", m)
 }
 
 // The UserPlatformQuotaFunc type is an adapter to allow the use of ordinary

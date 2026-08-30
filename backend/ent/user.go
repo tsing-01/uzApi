@@ -97,11 +97,15 @@ type UserEdges struct {
 	PendingAuthSessions []*PendingAuthSession `json:"pending_auth_sessions,omitempty"`
 	// PlatformQuotas holds the value of the platform_quotas edge.
 	PlatformQuotas []*UserPlatformQuota `json:"platform_quotas,omitempty"`
+	// ActivationCodes holds the value of the activation_codes edge.
+	ActivationCodes []*ActivationCode `json:"activation_codes,omitempty"`
+	// LoginIps holds the value of the login_ips edge.
+	LoginIps []*UserLoginIP `json:"login_ips,omitempty"`
 	// UserAllowedGroups holds the value of the user_allowed_groups edge.
 	UserAllowedGroups []*UserAllowedGroup `json:"user_allowed_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [14]bool
+	loadedTypes [16]bool
 }
 
 // APIKeysOrErr returns the APIKeys value or an error if the edge
@@ -221,10 +225,28 @@ func (e UserEdges) PlatformQuotasOrErr() ([]*UserPlatformQuota, error) {
 	return nil, &NotLoadedError{edge: "platform_quotas"}
 }
 
+// ActivationCodesOrErr returns the ActivationCodes value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ActivationCodesOrErr() ([]*ActivationCode, error) {
+	if e.loadedTypes[13] {
+		return e.ActivationCodes, nil
+	}
+	return nil, &NotLoadedError{edge: "activation_codes"}
+}
+
+// LoginIpsOrErr returns the LoginIps value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) LoginIpsOrErr() ([]*UserLoginIP, error) {
+	if e.loadedTypes[14] {
+		return e.LoginIps, nil
+	}
+	return nil, &NotLoadedError{edge: "login_ips"}
+}
+
 // UserAllowedGroupsOrErr returns the UserAllowedGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserAllowedGroupsOrErr() ([]*UserAllowedGroup, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[15] {
 		return e.UserAllowedGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "user_allowed_groups"}
@@ -486,6 +508,16 @@ func (_m *User) QueryPendingAuthSessions() *PendingAuthSessionQuery {
 // QueryPlatformQuotas queries the "platform_quotas" edge of the User entity.
 func (_m *User) QueryPlatformQuotas() *UserPlatformQuotaQuery {
 	return NewUserClient(_m.config).QueryPlatformQuotas(_m)
+}
+
+// QueryActivationCodes queries the "activation_codes" edge of the User entity.
+func (_m *User) QueryActivationCodes() *ActivationCodeQuery {
+	return NewUserClient(_m.config).QueryActivationCodes(_m)
+}
+
+// QueryLoginIps queries the "login_ips" edge of the User entity.
+func (_m *User) QueryLoginIps() *UserLoginIPQuery {
+	return NewUserClient(_m.config).QueryLoginIps(_m)
 }
 
 // QueryUserAllowedGroups queries the "user_allowed_groups" edge of the User entity.

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/uzapi/ent/account"
 	"github.com/uzapi/ent/accountgroup"
+	"github.com/uzapi/ent/activationcode"
 	"github.com/uzapi/ent/announcement"
 	"github.com/uzapi/ent/announcementread"
 	"github.com/uzapi/ent/apikey"
@@ -45,6 +46,7 @@ import (
 	"github.com/uzapi/ent/userallowedgroup"
 	"github.com/uzapi/ent/userattributedefinition"
 	"github.com/uzapi/ent/userattributevalue"
+	"github.com/uzapi/ent/userloginip"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/ent/usersubscription"
 )
@@ -110,6 +112,7 @@ func checkColumn(t, c string) error {
 			apikey.Table:                        apikey.ValidColumn,
 			account.Table:                       account.ValidColumn,
 			accountgroup.Table:                  accountgroup.ValidColumn,
+			activationcode.Table:                activationcode.ValidColumn,
 			announcement.Table:                  announcement.ValidColumn,
 			announcementread.Table:              announcementread.ValidColumn,
 			authidentity.Table:                  authidentity.ValidColumn,
@@ -140,6 +143,7 @@ func checkColumn(t, c string) error {
 			userallowedgroup.Table:              userallowedgroup.ValidColumn,
 			userattributedefinition.Table:       userattributedefinition.ValidColumn,
 			userattributevalue.Table:            userattributevalue.ValidColumn,
+			userloginip.Table:                   userloginip.ValidColumn,
 			userplatformquota.Table:             userplatformquota.ValidColumn,
 			usersubscription.Table:              usersubscription.ValidColumn,
 		})

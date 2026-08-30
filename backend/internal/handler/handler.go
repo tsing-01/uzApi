@@ -20,6 +20,7 @@ type AdminHandlers struct {
 	Proxy                  *admin.ProxyHandler
 	Redeem                 *admin.RedeemHandler
 	Promo                  *admin.PromoHandler
+	ActivationCode         *admin.ActivationCodeHandler
 	Setting                *admin.SettingHandler
 	Ops                    *admin.OpsHandler
 	System                 *admin.SystemHandler
@@ -57,6 +58,7 @@ type Handlers struct {
 	PaymentWebhook   *PaymentWebhookHandler
 	AvailableChannel *AvailableChannelHandler
 	Integration      *IntegrationHandler
+	ActivationCode   *ActivationCodeHandler
 }
 
 // BuildInfo contains build-time information

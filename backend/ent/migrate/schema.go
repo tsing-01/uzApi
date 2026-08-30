@@ -245,6 +245,51 @@ var (
 			},
 		},
 	}
+	// ActivationCodesColumns holds the columns for the "activation_codes" table.
+	ActivationCodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "code", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "amount", Type: field.TypeFloat64, Default: 0, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "status", Type: field.TypeString, Size: 20, Default: "unused"},
+		{Name: "starts_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "used_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "notes", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "used_by", Type: field.TypeInt64, Nullable: true},
+	}
+	// ActivationCodesTable holds the schema information for the "activation_codes" table.
+	ActivationCodesTable = &schema.Table{
+		Name:       "activation_codes",
+		Columns:    ActivationCodesColumns,
+		PrimaryKey: []*schema.Column{ActivationCodesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "activation_codes_users_activation_codes",
+				Columns:    []*schema.Column{ActivationCodesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "activationcode_status",
+				Unique:  false,
+				Columns: []*schema.Column{ActivationCodesColumns[3]},
+			},
+			{
+				Name:    "activationcode_used_by",
+				Unique:  false,
+				Columns: []*schema.Column{ActivationCodesColumns[10]},
+			},
+			{
+				Name:    "activationcode_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{ActivationCodesColumns[5]},
+			},
+		},
+	}
 	// AnnouncementsColumns holds the columns for the "announcements" table.
 	AnnouncementsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1613,6 +1658,40 @@ var (
 			},
 		},
 	}
+	// UserLoginIpsColumns holds the columns for the "user_login_ips" table.
+	UserLoginIpsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "ip", Type: field.TypeString, Size: 45},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "last_seen_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// UserLoginIpsTable holds the schema information for the "user_login_ips" table.
+	UserLoginIpsTable = &schema.Table{
+		Name:       "user_login_ips",
+		Columns:    UserLoginIpsColumns,
+		PrimaryKey: []*schema.Column{UserLoginIpsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_login_ips_users_login_ips",
+				Columns:    []*schema.Column{UserLoginIpsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userloginip_user_id_ip",
+				Unique:  true,
+				Columns: []*schema.Column{UserLoginIpsColumns[4], UserLoginIpsColumns[1]},
+			},
+			{
+				Name:    "userloginip_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserLoginIpsColumns[4]},
+			},
+		},
+	}
 	// UserPlatformQuotasColumns holds the columns for the "user_platform_quotas" table.
 	UserPlatformQuotasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1754,6 +1833,7 @@ var (
 		APIKeysTable,
 		AccountsTable,
 		AccountGroupsTable,
+		ActivationCodesTable,
 		AnnouncementsTable,
 		AnnouncementReadsTable,
 		AuthIdentitiesTable,
@@ -1784,6 +1864,7 @@ var (
 		UserAllowedGroupsTable,
 		UserAttributeDefinitionsTable,
 		UserAttributeValuesTable,
+		UserLoginIpsTable,
 		UserPlatformQuotasTable,
 		UserSubscriptionsTable,
 	}
@@ -1803,6 +1884,10 @@ func init() {
 	AccountGroupsTable.ForeignKeys[1].RefTable = GroupsTable
 	AccountGroupsTable.Annotation = &entsql.Annotation{
 		Table: "account_groups",
+	}
+	ActivationCodesTable.ForeignKeys[0].RefTable = UsersTable
+	ActivationCodesTable.Annotation = &entsql.Annotation{
+		Table: "activation_codes",
 	}
 	AnnouncementsTable.Annotation = &entsql.Annotation{
 		Table: "announcements",
@@ -1917,6 +2002,10 @@ func init() {
 	UserAttributeValuesTable.ForeignKeys[1].RefTable = UserAttributeDefinitionsTable
 	UserAttributeValuesTable.Annotation = &entsql.Annotation{
 		Table: "user_attribute_values",
+	}
+	UserLoginIpsTable.ForeignKeys[0].RefTable = UsersTable
+	UserLoginIpsTable.Annotation = &entsql.Annotation{
+		Table: "user_login_ips",
 	}
 	UserPlatformQuotasTable.ForeignKeys[0].RefTable = UsersTable
 	UserPlatformQuotasTable.Annotation = &entsql.Annotation{

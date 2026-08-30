@@ -42,6 +42,17 @@ const (
 	RedeemTypeInvitation   = "invitation"
 )
 
+// ActivationCode status constants
+const (
+	ActivationCodeStatusUnused   = "unused"   // 未绑定
+	ActivationCodeStatusUsed     = "used"     // 已绑定（当前生效的激活码）
+	ActivationCodeStatusReplaced = "replaced" // 已被同一用户的新激活码替换
+	ActivationCodeStatusDisabled = "disabled" // 管理员禁用
+)
+
+// UserLoginIPLimit 单个用户允许登录的不同 IP 数量上限，超出后登录被拦截。
+const UserLoginIPLimit = 2
+
 // PromoCode status constants
 const (
 	PromoCodeStatusActive   = "active"

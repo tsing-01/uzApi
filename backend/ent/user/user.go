@@ -87,6 +87,10 @@ const (
 	EdgePendingAuthSessions = "pending_auth_sessions"
 	// EdgePlatformQuotas holds the string denoting the platform_quotas edge name in mutations.
 	EdgePlatformQuotas = "platform_quotas"
+	// EdgeActivationCodes holds the string denoting the activation_codes edge name in mutations.
+	EdgeActivationCodes = "activation_codes"
+	// EdgeLoginIps holds the string denoting the login_ips edge name in mutations.
+	EdgeLoginIps = "login_ips"
 	// EdgeUserAllowedGroups holds the string denoting the user_allowed_groups edge name in mutations.
 	EdgeUserAllowedGroups = "user_allowed_groups"
 	// Table holds the table name of the user in the database.
@@ -180,6 +184,20 @@ const (
 	PlatformQuotasInverseTable = "user_platform_quotas"
 	// PlatformQuotasColumn is the table column denoting the platform_quotas relation/edge.
 	PlatformQuotasColumn = "user_id"
+	// ActivationCodesTable is the table that holds the activation_codes relation/edge.
+	ActivationCodesTable = "activation_codes"
+	// ActivationCodesInverseTable is the table name for the ActivationCode entity.
+	// It exists in this package in order to avoid circular dependency with the "activationcode" package.
+	ActivationCodesInverseTable = "activation_codes"
+	// ActivationCodesColumn is the table column denoting the activation_codes relation/edge.
+	ActivationCodesColumn = "used_by"
+	// LoginIpsTable is the table that holds the login_ips relation/edge.
+	LoginIpsTable = "user_login_ips"
+	// LoginIpsInverseTable is the table name for the UserLoginIP entity.
+	// It exists in this package in order to avoid circular dependency with the "userloginip" package.
+	LoginIpsInverseTable = "user_login_ips"
+	// LoginIpsColumn is the table column denoting the login_ips relation/edge.
+	LoginIpsColumn = "user_id"
 	// UserAllowedGroupsTable is the table that holds the user_allowed_groups relation/edge.
 	UserAllowedGroupsTable = "user_allowed_groups"
 	// UserAllowedGroupsInverseTable is the table name for the UserAllowedGroup entity.
@@ -592,6 +610,34 @@ func ByPlatformQuotas(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByActivationCodesCount orders the results by activation_codes count.
+func ByActivationCodesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newActivationCodesStep(), opts...)
+	}
+}
+
+// ByActivationCodes orders the results by activation_codes terms.
+func ByActivationCodes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newActivationCodesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLoginIpsCount orders the results by login_ips count.
+func ByLoginIpsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLoginIpsStep(), opts...)
+	}
+}
+
+// ByLoginIps orders the results by login_ips terms.
+func ByLoginIps(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLoginIpsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUserAllowedGroupsCount orders the results by user_allowed_groups count.
 func ByUserAllowedGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -694,6 +740,20 @@ func newPlatformQuotasStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PlatformQuotasInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PlatformQuotasTable, PlatformQuotasColumn),
+	)
+}
+func newActivationCodesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ActivationCodesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ActivationCodesTable, ActivationCodesColumn),
+	)
+}
+func newLoginIpsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LoginIpsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LoginIpsTable, LoginIpsColumn),
 	)
 }
 func newUserAllowedGroupsStep() *sqlgraph.Step {

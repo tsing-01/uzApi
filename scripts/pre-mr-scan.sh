@@ -19,7 +19,7 @@ set -uo pipefail
 
 # ---- 与 CI 保持一致的版本号（改 CI 时同步这里）----------------------------
 GOLANGCI_VERSION="v2.9.0"      # backend-ci.yml: golangci-lint-action version
-REQUIRED_GO="go1.26.5"        # backend-ci.yml: Verify Go version
+REQUIRED_GO="go1.26.6"        # backend-ci.yml: Verify Go version
 LINT_TIMEOUT="30m"            # backend-ci.yml: --timeout=30m
 # ---------------------------------------------------------------------------
 

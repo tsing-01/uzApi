@@ -1821,6 +1821,81 @@ export interface UpdatePromoCodeRequest {
   notes?: string
 }
 
+// ==================== Activation Code Types ====================
+
+export type ActivationCodeStatus = 'unused' | 'used' | 'replaced' | 'disabled'
+
+export interface ActivationCode {
+  id: number
+  code: string
+  amount: number
+  status: ActivationCodeStatus
+  starts_at: string | null
+  expires_at: string | null
+  used_by: number | null
+  used_at: string | null
+  created_at: string
+  updated_at: string
+  /** 仅管理端接口返回 */
+  notes?: string
+}
+
+export interface CreateActivationCodeRequest {
+  code?: string
+  amount: number
+  starts_at?: number
+  expires_at?: number
+  notes?: string
+  count?: number
+}
+
+export interface UpdateActivationCodeRequest {
+  amount?: number
+  status?: 'unused' | 'disabled'
+  /** 秒级时间戳，传 0 表示清空 */
+  starts_at?: number
+  expires_at?: number
+  notes?: string
+}
+
+export interface UserLoginIP {
+  ip: string
+  created_at: string
+  last_seen_at: string
+}
+
+export type ActivationInvalidReason =
+  | 'NOT_BOUND'
+  | 'NOT_STARTED'
+  | 'EXPIRED'
+  | 'DISABLED'
+  | 'REPLACED'
+  | ''
+
+export interface ActivationStatus {
+  bound: boolean
+  valid: boolean
+  reason?: ActivationInvalidReason
+  code: ActivationCode | null
+  login_ips: UserLoginIP[]
+  login_ip_used: number
+  login_ip_limit: number
+}
+
+export interface AddActivationCodeResponse {
+  code: ActivationCode
+  amount: number
+  new_balance: number
+  replaced: number
+  login_ip_reset: boolean
+}
+
+export interface UserLoginIPsResponse {
+  login_ips: UserLoginIP[]
+  login_ip_used: number
+  login_ip_limit: number
+}
+
 // ==================== TOTP (2FA) Types ====================
 
 export interface TotpStatus {

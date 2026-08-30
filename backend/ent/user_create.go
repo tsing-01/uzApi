@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/uzapi/ent/activationcode"
 	"github.com/uzapi/ent/announcementread"
 	"github.com/uzapi/ent/apikey"
 	"github.com/uzapi/ent/authidentity"
@@ -22,6 +23,7 @@ import (
 	"github.com/uzapi/ent/usagelog"
 	"github.com/uzapi/ent/user"
 	"github.com/uzapi/ent/userattributevalue"
+	"github.com/uzapi/ent/userloginip"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/ent/usersubscription"
 )
@@ -533,6 +535,36 @@ func (_c *UserCreate) AddPlatformQuotas(v ...*UserPlatformQuota) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddPlatformQuotaIDs(ids...)
+}
+
+// AddActivationCodeIDs adds the "activation_codes" edge to the ActivationCode entity by IDs.
+func (_c *UserCreate) AddActivationCodeIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddActivationCodeIDs(ids...)
+	return _c
+}
+
+// AddActivationCodes adds the "activation_codes" edges to the ActivationCode entity.
+func (_c *UserCreate) AddActivationCodes(v ...*ActivationCode) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddActivationCodeIDs(ids...)
+}
+
+// AddLoginIPIDs adds the "login_ips" edge to the UserLoginIP entity by IDs.
+func (_c *UserCreate) AddLoginIPIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddLoginIPIDs(ids...)
+	return _c
+}
+
+// AddLoginIps adds the "login_ips" edges to the UserLoginIP entity.
+func (_c *UserCreate) AddLoginIps(v ...*UserLoginIP) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLoginIPIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1048,6 +1080,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userplatformquota.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ActivationCodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ActivationCodesTable,
+			Columns: []string{user.ActivationCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activationcode.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LoginIpsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginIpsTable,
+			Columns: []string{user.LoginIpsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userloginip.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

@@ -1620,6 +1620,9 @@ func (h *AuthHandler) bindPendingOAuthLogin(c *gin.Context, provider string) {
 		return
 	}
 
+	if !h.guardActivationLogin(c, user) {
+		return
+	}
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
 	// bindPendingOAuthLogin = 绑定已有账户登录，不动 users.username（用户已有自己的名字）
 	h.maybeSyncDingTalkAfterLogin(c.Request.Context(), session, user.ID)
@@ -1820,6 +1823,9 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 		return
 	}
 
+	if !h.guardActivationLogin(c, user) {
+		return
+	}
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
 	// createPendingOAuthAccount = 注册新账户，需要把钉钉昵称同步到 users.username 作为初始值
 	h.maybeSyncDingTalkAfterRegistration(c.Request.Context(), session, user.ID)
@@ -1971,6 +1977,9 @@ func (h *AuthHandler) ExchangePendingOAuthCompletion(c *gin.Context) {
 		if err != nil {
 			clearCookies()
 			response.InternalError(c, "Failed to generate token pair")
+			return
+		}
+		if !h.guardActivationLogin(c, loginUser) {
 			return
 		}
 		h.authService.RecordSuccessfulLogin(c.Request.Context(), loginUser.ID)

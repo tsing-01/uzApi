@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/uzapi/ent/account"
 	"github.com/uzapi/ent/accountgroup"
+	"github.com/uzapi/ent/activationcode"
 	"github.com/uzapi/ent/announcement"
 	"github.com/uzapi/ent/announcementread"
 	"github.com/uzapi/ent/apikey"
@@ -48,6 +49,7 @@ import (
 	"github.com/uzapi/ent/userallowedgroup"
 	"github.com/uzapi/ent/userattributedefinition"
 	"github.com/uzapi/ent/userattributevalue"
+	"github.com/uzapi/ent/userloginip"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/ent/usersubscription"
 
@@ -65,6 +67,8 @@ type Client struct {
 	Account *AccountClient
 	// AccountGroup is the client for interacting with the AccountGroup builders.
 	AccountGroup *AccountGroupClient
+	// ActivationCode is the client for interacting with the ActivationCode builders.
+	ActivationCode *ActivationCodeClient
 	// Announcement is the client for interacting with the Announcement builders.
 	Announcement *AnnouncementClient
 	// AnnouncementRead is the client for interacting with the AnnouncementRead builders.
@@ -125,6 +129,8 @@ type Client struct {
 	UserAttributeDefinition *UserAttributeDefinitionClient
 	// UserAttributeValue is the client for interacting with the UserAttributeValue builders.
 	UserAttributeValue *UserAttributeValueClient
+	// UserLoginIP is the client for interacting with the UserLoginIP builders.
+	UserLoginIP *UserLoginIPClient
 	// UserPlatformQuota is the client for interacting with the UserPlatformQuota builders.
 	UserPlatformQuota *UserPlatformQuotaClient
 	// UserSubscription is the client for interacting with the UserSubscription builders.
@@ -143,6 +149,7 @@ func (c *Client) init() {
 	c.APIKey = NewAPIKeyClient(c.config)
 	c.Account = NewAccountClient(c.config)
 	c.AccountGroup = NewAccountGroupClient(c.config)
+	c.ActivationCode = NewActivationCodeClient(c.config)
 	c.Announcement = NewAnnouncementClient(c.config)
 	c.AnnouncementRead = NewAnnouncementReadClient(c.config)
 	c.AuthIdentity = NewAuthIdentityClient(c.config)
@@ -173,6 +180,7 @@ func (c *Client) init() {
 	c.UserAllowedGroup = NewUserAllowedGroupClient(c.config)
 	c.UserAttributeDefinition = NewUserAttributeDefinitionClient(c.config)
 	c.UserAttributeValue = NewUserAttributeValueClient(c.config)
+	c.UserLoginIP = NewUserLoginIPClient(c.config)
 	c.UserPlatformQuota = NewUserPlatformQuotaClient(c.config)
 	c.UserSubscription = NewUserSubscriptionClient(c.config)
 }
@@ -270,6 +278,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		APIKey:                        NewAPIKeyClient(cfg),
 		Account:                       NewAccountClient(cfg),
 		AccountGroup:                  NewAccountGroupClient(cfg),
+		ActivationCode:                NewActivationCodeClient(cfg),
 		Announcement:                  NewAnnouncementClient(cfg),
 		AnnouncementRead:              NewAnnouncementReadClient(cfg),
 		AuthIdentity:                  NewAuthIdentityClient(cfg),
@@ -300,6 +309,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		UserAllowedGroup:              NewUserAllowedGroupClient(cfg),
 		UserAttributeDefinition:       NewUserAttributeDefinitionClient(cfg),
 		UserAttributeValue:            NewUserAttributeValueClient(cfg),
+		UserLoginIP:                   NewUserLoginIPClient(cfg),
 		UserPlatformQuota:             NewUserPlatformQuotaClient(cfg),
 		UserSubscription:              NewUserSubscriptionClient(cfg),
 	}, nil
@@ -324,6 +334,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		APIKey:                        NewAPIKeyClient(cfg),
 		Account:                       NewAccountClient(cfg),
 		AccountGroup:                  NewAccountGroupClient(cfg),
+		ActivationCode:                NewActivationCodeClient(cfg),
 		Announcement:                  NewAnnouncementClient(cfg),
 		AnnouncementRead:              NewAnnouncementReadClient(cfg),
 		AuthIdentity:                  NewAuthIdentityClient(cfg),
@@ -354,6 +365,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		UserAllowedGroup:              NewUserAllowedGroupClient(cfg),
 		UserAttributeDefinition:       NewUserAttributeDefinitionClient(cfg),
 		UserAttributeValue:            NewUserAttributeValueClient(cfg),
+		UserLoginIP:                   NewUserLoginIPClient(cfg),
 		UserPlatformQuota:             NewUserPlatformQuotaClient(cfg),
 		UserSubscription:              NewUserSubscriptionClient(cfg),
 	}, nil
@@ -385,8 +397,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.APIKey, c.Account, c.AccountGroup, c.Announcement, c.AnnouncementRead,
-		c.AuthIdentity, c.AuthIdentityChannel, c.ChannelMonitor,
+		c.APIKey, c.Account, c.AccountGroup, c.ActivationCode, c.Announcement,
+		c.AnnouncementRead, c.AuthIdentity, c.AuthIdentityChannel, c.ChannelMonitor,
 		c.ChannelMonitorDailyRollup, c.ChannelMonitorHistory,
 		c.ChannelMonitorRequestTemplate, c.ErrorPassthroughRule, c.Group,
 		c.IdempotencyRecord, c.IdentityAdoptionDecision, c.PaymentAuditLog,
@@ -394,7 +406,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.PromoCodeUsage, c.Proxy, c.RedeemCode, c.SecuritySecret, c.Setting,
 		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
 		c.User, c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
-		c.UserPlatformQuota, c.UserSubscription,
+		c.UserLoginIP, c.UserPlatformQuota, c.UserSubscription,
 	} {
 		n.Use(hooks...)
 	}
@@ -404,8 +416,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.APIKey, c.Account, c.AccountGroup, c.Announcement, c.AnnouncementRead,
-		c.AuthIdentity, c.AuthIdentityChannel, c.ChannelMonitor,
+		c.APIKey, c.Account, c.AccountGroup, c.ActivationCode, c.Announcement,
+		c.AnnouncementRead, c.AuthIdentity, c.AuthIdentityChannel, c.ChannelMonitor,
 		c.ChannelMonitorDailyRollup, c.ChannelMonitorHistory,
 		c.ChannelMonitorRequestTemplate, c.ErrorPassthroughRule, c.Group,
 		c.IdempotencyRecord, c.IdentityAdoptionDecision, c.PaymentAuditLog,
@@ -413,7 +425,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.PromoCodeUsage, c.Proxy, c.RedeemCode, c.SecuritySecret, c.Setting,
 		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
 		c.User, c.UserAllowedGroup, c.UserAttributeDefinition, c.UserAttributeValue,
-		c.UserPlatformQuota, c.UserSubscription,
+		c.UserLoginIP, c.UserPlatformQuota, c.UserSubscription,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -428,6 +440,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Account.mutate(ctx, m)
 	case *AccountGroupMutation:
 		return c.AccountGroup.mutate(ctx, m)
+	case *ActivationCodeMutation:
+		return c.ActivationCode.mutate(ctx, m)
 	case *AnnouncementMutation:
 		return c.Announcement.mutate(ctx, m)
 	case *AnnouncementReadMutation:
@@ -488,6 +502,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserAttributeDefinition.mutate(ctx, m)
 	case *UserAttributeValueMutation:
 		return c.UserAttributeValue.mutate(ctx, m)
+	case *UserLoginIPMutation:
+		return c.UserLoginIP.mutate(ctx, m)
 	case *UserPlatformQuotaMutation:
 		return c.UserPlatformQuota.mutate(ctx, m)
 	case *UserSubscriptionMutation:
@@ -992,6 +1008,155 @@ func (c *AccountGroupClient) mutate(ctx context.Context, m *AccountGroupMutation
 		return (&AccountGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AccountGroup mutation op: %q", m.Op())
+	}
+}
+
+// ActivationCodeClient is a client for the ActivationCode schema.
+type ActivationCodeClient struct {
+	config
+}
+
+// NewActivationCodeClient returns a client for the ActivationCode from the given config.
+func NewActivationCodeClient(c config) *ActivationCodeClient {
+	return &ActivationCodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `activationcode.Hooks(f(g(h())))`.
+func (c *ActivationCodeClient) Use(hooks ...Hook) {
+	c.hooks.ActivationCode = append(c.hooks.ActivationCode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `activationcode.Intercept(f(g(h())))`.
+func (c *ActivationCodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ActivationCode = append(c.inters.ActivationCode, interceptors...)
+}
+
+// Create returns a builder for creating a ActivationCode entity.
+func (c *ActivationCodeClient) Create() *ActivationCodeCreate {
+	mutation := newActivationCodeMutation(c.config, OpCreate)
+	return &ActivationCodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ActivationCode entities.
+func (c *ActivationCodeClient) CreateBulk(builders ...*ActivationCodeCreate) *ActivationCodeCreateBulk {
+	return &ActivationCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ActivationCodeClient) MapCreateBulk(slice any, setFunc func(*ActivationCodeCreate, int)) *ActivationCodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ActivationCodeCreateBulk{err: fmt.Errorf("calling to ActivationCodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ActivationCodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ActivationCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ActivationCode.
+func (c *ActivationCodeClient) Update() *ActivationCodeUpdate {
+	mutation := newActivationCodeMutation(c.config, OpUpdate)
+	return &ActivationCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ActivationCodeClient) UpdateOne(_m *ActivationCode) *ActivationCodeUpdateOne {
+	mutation := newActivationCodeMutation(c.config, OpUpdateOne, withActivationCode(_m))
+	return &ActivationCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ActivationCodeClient) UpdateOneID(id int64) *ActivationCodeUpdateOne {
+	mutation := newActivationCodeMutation(c.config, OpUpdateOne, withActivationCodeID(id))
+	return &ActivationCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ActivationCode.
+func (c *ActivationCodeClient) Delete() *ActivationCodeDelete {
+	mutation := newActivationCodeMutation(c.config, OpDelete)
+	return &ActivationCodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ActivationCodeClient) DeleteOne(_m *ActivationCode) *ActivationCodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ActivationCodeClient) DeleteOneID(id int64) *ActivationCodeDeleteOne {
+	builder := c.Delete().Where(activationcode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ActivationCodeDeleteOne{builder}
+}
+
+// Query returns a query builder for ActivationCode.
+func (c *ActivationCodeClient) Query() *ActivationCodeQuery {
+	return &ActivationCodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeActivationCode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ActivationCode entity by its id.
+func (c *ActivationCodeClient) Get(ctx context.Context, id int64) (*ActivationCode, error) {
+	return c.Query().Where(activationcode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ActivationCodeClient) GetX(ctx context.Context, id int64) *ActivationCode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ActivationCode.
+func (c *ActivationCodeClient) QueryUser(_m *ActivationCode) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activationcode.Table, activationcode.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, activationcode.UserTable, activationcode.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ActivationCodeClient) Hooks() []Hook {
+	return c.hooks.ActivationCode
+}
+
+// Interceptors returns the client interceptors.
+func (c *ActivationCodeClient) Interceptors() []Interceptor {
+	return c.inters.ActivationCode
+}
+
+func (c *ActivationCodeClient) mutate(ctx context.Context, m *ActivationCodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ActivationCodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ActivationCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ActivationCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ActivationCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ActivationCode mutation op: %q", m.Op())
 	}
 }
 
@@ -5365,6 +5530,38 @@ func (c *UserClient) QueryPlatformQuotas(_m *User) *UserPlatformQuotaQuery {
 	return query
 }
 
+// QueryActivationCodes queries the activation_codes edge of a User.
+func (c *UserClient) QueryActivationCodes(_m *User) *ActivationCodeQuery {
+	query := (&ActivationCodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(activationcode.Table, activationcode.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ActivationCodesTable, user.ActivationCodesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLoginIps queries the login_ips edge of a User.
+func (c *UserClient) QueryLoginIps(_m *User) *UserLoginIPQuery {
+	query := (&UserLoginIPClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(userloginip.Table, userloginip.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LoginIpsTable, user.LoginIpsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUserAllowedGroups queries the user_allowed_groups edge of a User.
 func (c *UserClient) QueryUserAllowedGroups(_m *User) *UserAllowedGroupQuery {
 	query := (&UserAllowedGroupClient{config: c.config}).Query()
@@ -5840,6 +6037,155 @@ func (c *UserAttributeValueClient) mutate(ctx context.Context, m *UserAttributeV
 	}
 }
 
+// UserLoginIPClient is a client for the UserLoginIP schema.
+type UserLoginIPClient struct {
+	config
+}
+
+// NewUserLoginIPClient returns a client for the UserLoginIP from the given config.
+func NewUserLoginIPClient(c config) *UserLoginIPClient {
+	return &UserLoginIPClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userloginip.Hooks(f(g(h())))`.
+func (c *UserLoginIPClient) Use(hooks ...Hook) {
+	c.hooks.UserLoginIP = append(c.hooks.UserLoginIP, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userloginip.Intercept(f(g(h())))`.
+func (c *UserLoginIPClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserLoginIP = append(c.inters.UserLoginIP, interceptors...)
+}
+
+// Create returns a builder for creating a UserLoginIP entity.
+func (c *UserLoginIPClient) Create() *UserLoginIPCreate {
+	mutation := newUserLoginIPMutation(c.config, OpCreate)
+	return &UserLoginIPCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserLoginIP entities.
+func (c *UserLoginIPClient) CreateBulk(builders ...*UserLoginIPCreate) *UserLoginIPCreateBulk {
+	return &UserLoginIPCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserLoginIPClient) MapCreateBulk(slice any, setFunc func(*UserLoginIPCreate, int)) *UserLoginIPCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserLoginIPCreateBulk{err: fmt.Errorf("calling to UserLoginIPClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserLoginIPCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserLoginIPCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserLoginIP.
+func (c *UserLoginIPClient) Update() *UserLoginIPUpdate {
+	mutation := newUserLoginIPMutation(c.config, OpUpdate)
+	return &UserLoginIPUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserLoginIPClient) UpdateOne(_m *UserLoginIP) *UserLoginIPUpdateOne {
+	mutation := newUserLoginIPMutation(c.config, OpUpdateOne, withUserLoginIP(_m))
+	return &UserLoginIPUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserLoginIPClient) UpdateOneID(id int64) *UserLoginIPUpdateOne {
+	mutation := newUserLoginIPMutation(c.config, OpUpdateOne, withUserLoginIPID(id))
+	return &UserLoginIPUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserLoginIP.
+func (c *UserLoginIPClient) Delete() *UserLoginIPDelete {
+	mutation := newUserLoginIPMutation(c.config, OpDelete)
+	return &UserLoginIPDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserLoginIPClient) DeleteOne(_m *UserLoginIP) *UserLoginIPDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserLoginIPClient) DeleteOneID(id int64) *UserLoginIPDeleteOne {
+	builder := c.Delete().Where(userloginip.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserLoginIPDeleteOne{builder}
+}
+
+// Query returns a query builder for UserLoginIP.
+func (c *UserLoginIPClient) Query() *UserLoginIPQuery {
+	return &UserLoginIPQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserLoginIP},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserLoginIP entity by its id.
+func (c *UserLoginIPClient) Get(ctx context.Context, id int64) (*UserLoginIP, error) {
+	return c.Query().Where(userloginip.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserLoginIPClient) GetX(ctx context.Context, id int64) *UserLoginIP {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserLoginIP.
+func (c *UserLoginIPClient) QueryUser(_m *UserLoginIP) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userloginip.Table, userloginip.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userloginip.UserTable, userloginip.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserLoginIPClient) Hooks() []Hook {
+	return c.hooks.UserLoginIP
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserLoginIPClient) Interceptors() []Interceptor {
+	return c.inters.UserLoginIP
+}
+
+func (c *UserLoginIPClient) mutate(ctx context.Context, m *UserLoginIPMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserLoginIPCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserLoginIPUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserLoginIPUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserLoginIPDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserLoginIP mutation op: %q", m.Op())
+	}
+}
+
 // UserPlatformQuotaClient is a client for the UserPlatformQuota schema.
 type UserPlatformQuotaClient struct {
 	config
@@ -6193,25 +6539,25 @@ func (c *UserSubscriptionClient) mutate(ctx context.Context, m *UserSubscription
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
-		AuthIdentityChannel, ChannelMonitor, ChannelMonitorDailyRollup,
+		APIKey, Account, AccountGroup, ActivationCode, Announcement, AnnouncementRead,
+		AuthIdentity, AuthIdentityChannel, ChannelMonitor, ChannelMonitorDailyRollup,
 		ChannelMonitorHistory, ChannelMonitorRequestTemplate, ErrorPassthroughRule,
 		Group, IdempotencyRecord, IdentityAdoptionDecision, PaymentAuditLog,
 		PaymentOrder, PaymentProviderInstance, PendingAuthSession, PromoCode,
 		PromoCodeUsage, Proxy, RedeemCode, SecuritySecret, Setting, SubscriptionPlan,
 		TLSFingerprintProfile, UsageCleanupTask, UsageLog, User, UserAllowedGroup,
-		UserAttributeDefinition, UserAttributeValue, UserPlatformQuota,
+		UserAttributeDefinition, UserAttributeValue, UserLoginIP, UserPlatformQuota,
 		UserSubscription []ent.Hook
 	}
 	inters struct {
-		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
-		AuthIdentityChannel, ChannelMonitor, ChannelMonitorDailyRollup,
+		APIKey, Account, AccountGroup, ActivationCode, Announcement, AnnouncementRead,
+		AuthIdentity, AuthIdentityChannel, ChannelMonitor, ChannelMonitorDailyRollup,
 		ChannelMonitorHistory, ChannelMonitorRequestTemplate, ErrorPassthroughRule,
 		Group, IdempotencyRecord, IdentityAdoptionDecision, PaymentAuditLog,
 		PaymentOrder, PaymentProviderInstance, PendingAuthSession, PromoCode,
 		PromoCodeUsage, Proxy, RedeemCode, SecuritySecret, Setting, SubscriptionPlan,
 		TLSFingerprintProfile, UsageCleanupTask, UsageLog, User, UserAllowedGroup,
-		UserAttributeDefinition, UserAttributeValue, UserPlatformQuota,
+		UserAttributeDefinition, UserAttributeValue, UserLoginIP, UserPlatformQuota,
 		UserSubscription []ent.Interceptor
 	}
 )

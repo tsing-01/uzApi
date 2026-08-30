@@ -10,6 +10,7 @@ import (
 	"github.com/uzapi/ent"
 	"github.com/uzapi/ent/account"
 	"github.com/uzapi/ent/accountgroup"
+	"github.com/uzapi/ent/activationcode"
 	"github.com/uzapi/ent/announcement"
 	"github.com/uzapi/ent/announcementread"
 	"github.com/uzapi/ent/apikey"
@@ -42,6 +43,7 @@ import (
 	"github.com/uzapi/ent/userallowedgroup"
 	"github.com/uzapi/ent/userattributedefinition"
 	"github.com/uzapi/ent/userattributevalue"
+	"github.com/uzapi/ent/userloginip"
 	"github.com/uzapi/ent/userplatformquota"
 	"github.com/uzapi/ent/usersubscription"
 )
@@ -181,6 +183,33 @@ func (f TraverseAccountGroup) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountGroupQuery", q)
+}
+
+// The ActivationCodeFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ActivationCodeFunc func(context.Context, *ent.ActivationCodeQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ActivationCodeFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ActivationCodeQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ActivationCodeQuery", q)
+}
+
+// The TraverseActivationCode type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseActivationCode func(context.Context, *ent.ActivationCodeQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseActivationCode) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseActivationCode) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ActivationCodeQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ActivationCodeQuery", q)
 }
 
 // The AnnouncementFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -993,6 +1022,33 @@ func (f TraverseUserAttributeValue) Traverse(ctx context.Context, q ent.Query) e
 	return fmt.Errorf("unexpected query type %T. expect *ent.UserAttributeValueQuery", q)
 }
 
+// The UserLoginIPFunc type is an adapter to allow the use of ordinary function as a Querier.
+type UserLoginIPFunc func(context.Context, *ent.UserLoginIPQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f UserLoginIPFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.UserLoginIPQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.UserLoginIPQuery", q)
+}
+
+// The TraverseUserLoginIP type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseUserLoginIP func(context.Context, *ent.UserLoginIPQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseUserLoginIP) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseUserLoginIP) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.UserLoginIPQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.UserLoginIPQuery", q)
+}
+
 // The UserPlatformQuotaFunc type is an adapter to allow the use of ordinary function as a Querier.
 type UserPlatformQuotaFunc func(context.Context, *ent.UserPlatformQuotaQuery) (ent.Value, error)
 
@@ -1056,6 +1112,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
 	case *ent.AccountGroupQuery:
 		return &query[*ent.AccountGroupQuery, predicate.AccountGroup, accountgroup.OrderOption]{typ: ent.TypeAccountGroup, tq: q}, nil
+	case *ent.ActivationCodeQuery:
+		return &query[*ent.ActivationCodeQuery, predicate.ActivationCode, activationcode.OrderOption]{typ: ent.TypeActivationCode, tq: q}, nil
 	case *ent.AnnouncementQuery:
 		return &query[*ent.AnnouncementQuery, predicate.Announcement, announcement.OrderOption]{typ: ent.TypeAnnouncement, tq: q}, nil
 	case *ent.AnnouncementReadQuery:
@@ -1116,6 +1174,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.UserAttributeDefinitionQuery, predicate.UserAttributeDefinition, userattributedefinition.OrderOption]{typ: ent.TypeUserAttributeDefinition, tq: q}, nil
 	case *ent.UserAttributeValueQuery:
 		return &query[*ent.UserAttributeValueQuery, predicate.UserAttributeValue, userattributevalue.OrderOption]{typ: ent.TypeUserAttributeValue, tq: q}, nil
+	case *ent.UserLoginIPQuery:
+		return &query[*ent.UserLoginIPQuery, predicate.UserLoginIP, userloginip.OrderOption]{typ: ent.TypeUserLoginIP, tq: q}, nil
 	case *ent.UserPlatformQuotaQuery:
 		return &query[*ent.UserPlatformQuotaQuery, predicate.UserPlatformQuota, userplatformquota.OrderOption]{typ: ent.TypeUserPlatformQuota, tq: q}, nil
 	case *ent.UserSubscriptionQuery:

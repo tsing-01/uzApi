@@ -4,6 +4,8 @@ packages:
 overrides:
   js-cookie: 3.0.7
   postcss: ^8.5.12
+  # postcss 传递依赖，3.3.18 以下存在 size=0 时自定义生成器死循环（GHSA-2v37-7h3g-55p8）
+  nanoid: ^3.3.18
 
 allowBuilds:
   esbuild: false
