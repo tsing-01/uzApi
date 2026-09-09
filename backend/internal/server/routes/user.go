@@ -82,6 +82,7 @@ func RegisterUserRoutes(
 		integration := authenticated.Group("/integration")
 		{
 			integration.GET("/me", h.Integration.Me)
+			integration.GET("/entitlements", h.Integration.Entitlements)
 		}
 
 		// 使用记录

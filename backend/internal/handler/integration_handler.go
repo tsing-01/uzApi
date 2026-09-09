@@ -2,6 +2,7 @@ package handler
 
 import (
 	"sort"
+	"time"
 
 	"github.com/uzapi/internal/handler/dto"
 	"github.com/uzapi/internal/pkg/pagination"
@@ -206,4 +207,29 @@ func flattenIntegrationModels(channels []userAvailableChannel) []integrationMode
 		return models[a].Name < models[b].Name
 	})
 	return models
+}
+
+// Entitlements reads only the authenticated user's current paid capabilities.
+// GET /api/v1/integration/entitlements (login JWT, never an inference API key).
+func (h *IntegrationHandler) Entitlements(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	user, err := h.userService.GetByID(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	if !user.IsActive() || user.DeletedAt != nil {
+		response.Unauthorized(c, "User account is not active")
+		return
+	}
+	response.Success(c, struct {
+		UserID                     int64      `json:"user_id"`
+		LocalModelAccessEnabled    bool       `json:"local_model_access_enabled"`
+		LocalModelAccessUnlockedAt *time.Time `json:"local_model_access_unlocked_at"`
+	}{user.ID, user.LocalModelAccessUnlockedAt != nil, user.LocalModelAccessUnlockedAt})
 }

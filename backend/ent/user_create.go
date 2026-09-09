@@ -146,6 +146,20 @@ func (_c *UserCreate) SetNillableStatus(v *string) *UserCreate {
 	return _c
 }
 
+// SetLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field.
+func (_c *UserCreate) SetLocalModelAccessUnlockedAt(v time.Time) *UserCreate {
+	_c.mutation.SetLocalModelAccessUnlockedAt(v)
+	return _c
+}
+
+// SetNillableLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLocalModelAccessUnlockedAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetLocalModelAccessUnlockedAt(*v)
+	}
+	return _c
+}
+
 // SetUsername sets the "username" field.
 func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	_c.mutation.SetUsername(v)
@@ -819,6 +833,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldStatus, field.TypeString, value)
 		_node.Status = value
 	}
+	if value, ok := _c.mutation.LocalModelAccessUnlockedAt(); ok {
+		_spec.SetField(user.FieldLocalModelAccessUnlockedAt, field.TypeTime, value)
+		_node.LocalModelAccessUnlockedAt = &value
+	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
@@ -1285,6 +1303,24 @@ func (u *UserUpsert) UpdateStatus() *UserUpsert {
 	return u
 }
 
+// SetLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field.
+func (u *UserUpsert) SetLocalModelAccessUnlockedAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldLocalModelAccessUnlockedAt, v)
+	return u
+}
+
+// UpdateLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLocalModelAccessUnlockedAt() *UserUpsert {
+	u.SetExcluded(user.FieldLocalModelAccessUnlockedAt)
+	return u
+}
+
+// ClearLocalModelAccessUnlockedAt clears the value of the "local_model_access_unlocked_at" field.
+func (u *UserUpsert) ClearLocalModelAccessUnlockedAt() *UserUpsert {
+	u.SetNull(user.FieldLocalModelAccessUnlockedAt)
+	return u
+}
+
 // SetUsername sets the "username" field.
 func (u *UserUpsert) SetUsername(v string) *UserUpsert {
 	u.Set(user.FieldUsername, v)
@@ -1676,6 +1712,27 @@ func (u *UserUpsertOne) SetStatus(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateStatus() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field.
+func (u *UserUpsertOne) SetLocalModelAccessUnlockedAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocalModelAccessUnlockedAt(v)
+	})
+}
+
+// UpdateLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLocalModelAccessUnlockedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocalModelAccessUnlockedAt()
+	})
+}
+
+// ClearLocalModelAccessUnlockedAt clears the value of the "local_model_access_unlocked_at" field.
+func (u *UserUpsertOne) ClearLocalModelAccessUnlockedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLocalModelAccessUnlockedAt()
 	})
 }
 
@@ -2272,6 +2329,27 @@ func (u *UserUpsertBulk) SetStatus(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateStatus() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field.
+func (u *UserUpsertBulk) SetLocalModelAccessUnlockedAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocalModelAccessUnlockedAt(v)
+	})
+}
+
+// UpdateLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLocalModelAccessUnlockedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocalModelAccessUnlockedAt()
+	})
+}
+
+// ClearLocalModelAccessUnlockedAt clears the value of the "local_model_access_unlocked_at" field.
+func (u *UserUpsertBulk) ClearLocalModelAccessUnlockedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLocalModelAccessUnlockedAt()
 	})
 }
 

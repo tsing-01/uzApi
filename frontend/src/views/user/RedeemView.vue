@@ -19,6 +19,13 @@
         </div>
       </div>
 
+      <div class="card p-6">
+        <p class="font-medium">{{ t('redeem.localModelAccess') }}</p>
+        <p class="mt-2 text-sm" :class="user?.local_model_access_enabled ? 'text-emerald-600' : 'text-gray-500'">
+          {{ t(user?.local_model_access_enabled ? 'redeem.localModelAccessUnlocked' : 'redeem.localModelAccessLocked') }}
+        </p>
+      </div>
+
       <!-- Redeem Form -->
       <div class="card">
         <div class="p-6">
@@ -96,7 +103,7 @@
                   {{ t('redeem.redeemSuccess') }}
                 </h3>
                 <div class="mt-2 text-sm text-emerald-700 dark:text-emerald-400">
-                  <p>{{ redeemResult.message }}</p>
+                  <p>{{ redeemResult.type === 'local_model_access' ? t('redeem.localModelAccessUnlocked') : redeemResult.message }}</p>
                   <div class="mt-3 space-y-1">
                     <p v-if="redeemResult.type === 'balance'" class="font-medium">
                       {{ t('redeem.added') }}: ¥{{ redeemResult.value.toFixed(2) }}
@@ -391,6 +398,7 @@ const isAdminAdjustment = (type: string) => {
 }
 
 const getHistoryItemTitle = (item: RedeemHistoryItem) => {
+  if (item.type === 'local_model_access') return t('redeem.localModelAccess')
   if (item.type === 'balance') {
     return t('redeem.balanceAddedRedeem')
   } else if (item.type === 'admin_balance') {
@@ -406,6 +414,7 @@ const getHistoryItemTitle = (item: RedeemHistoryItem) => {
 }
 
 const formatHistoryValue = (item: RedeemHistoryItem) => {
+  if (item.type === 'local_model_access') return t('redeem.localModelAccessUnlocked')
   if (isBalanceType(item.type)) {
     const sign = item.value >= 0 ? '+' : ''
     return `${sign}¥${item.value.toFixed(2)}`

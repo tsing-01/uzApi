@@ -100,6 +100,11 @@ func Status(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStatus, v))
 }
 
+// LocalModelAccessUnlockedAt applies equality check predicate on the "local_model_access_unlocked_at" field. It's identical to LocalModelAccessUnlockedAtEQ.
+func LocalModelAccessUnlockedAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLocalModelAccessUnlockedAt, v))
+}
+
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
@@ -638,6 +643,56 @@ func StatusEqualFold(v string) predicate.User {
 // StatusContainsFold applies the ContainsFold predicate on the "status" field.
 func StatusContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldStatus, v))
+}
+
+// LocalModelAccessUnlockedAtEQ applies the EQ predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLocalModelAccessUnlockedAt, v))
+}
+
+// LocalModelAccessUnlockedAtNEQ applies the NEQ predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldLocalModelAccessUnlockedAt, v))
+}
+
+// LocalModelAccessUnlockedAtIn applies the In predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldLocalModelAccessUnlockedAt, vs...))
+}
+
+// LocalModelAccessUnlockedAtNotIn applies the NotIn predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldLocalModelAccessUnlockedAt, vs...))
+}
+
+// LocalModelAccessUnlockedAtGT applies the GT predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldLocalModelAccessUnlockedAt, v))
+}
+
+// LocalModelAccessUnlockedAtGTE applies the GTE predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldLocalModelAccessUnlockedAt, v))
+}
+
+// LocalModelAccessUnlockedAtLT applies the LT predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldLocalModelAccessUnlockedAt, v))
+}
+
+// LocalModelAccessUnlockedAtLTE applies the LTE predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldLocalModelAccessUnlockedAt, v))
+}
+
+// LocalModelAccessUnlockedAtIsNil applies the IsNil predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldLocalModelAccessUnlockedAt))
+}
+
+// LocalModelAccessUnlockedAtNotNil applies the NotNil predicate on the "local_model_access_unlocked_at" field.
+func LocalModelAccessUnlockedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldLocalModelAccessUnlockedAt))
 }
 
 // UsernameEQ applies the EQ predicate on the "username" field.

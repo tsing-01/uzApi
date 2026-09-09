@@ -65,6 +65,8 @@ func TestAPIContracts(t *testing.T) {
 					"balance_notify_threshold": null,
 					"balance_notify_extra_emails": null,
 					"total_recharged": 0,
+                    "local_model_access_enabled": false,
+                    "local_model_access_unlocked_at": null,
 					"linuxdo_bound": false,
 					"oidc_bound": false,
 					"wechat_bound": false,

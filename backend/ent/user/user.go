@@ -33,6 +33,8 @@ const (
 	FieldConcurrency = "concurrency"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldLocalModelAccessUnlockedAt holds the string denoting the local_model_access_unlocked_at field in the database.
+	FieldLocalModelAccessUnlockedAt = "local_model_access_unlocked_at"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// FieldNotes holds the string denoting the notes field in the database.
@@ -219,6 +221,7 @@ var Columns = []string{
 	FieldBalance,
 	FieldConcurrency,
 	FieldStatus,
+	FieldLocalModelAccessUnlockedAt,
 	FieldUsername,
 	FieldNotes,
 	FieldTotpSecretEncrypted,
@@ -356,6 +359,11 @@ func ByConcurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByLocalModelAccessUnlockedAt orders the results by the local_model_access_unlocked_at field.
+func ByLocalModelAccessUnlockedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLocalModelAccessUnlockedAt, opts...).ToFunc()
 }
 
 // ByUsername orders the results by the username field.

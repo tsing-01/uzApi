@@ -137,6 +137,7 @@
                   >({{ row.group.name }})</span
                 >
               </template>
+              <template v-else-if="row.type === 'local_model_access'">{{ t('admin.redeem.permanentUnlock') }}</template>
               <template v-else>{{ value }}</template>
             </span>
           </template>
@@ -288,7 +289,7 @@
               <Select v-model="generateForm.type" :options="typeOptions" />
             </div>
             <!-- 余额/并发类型：显示数值输入 -->
-            <div v-if="generateForm.type !== 'subscription' && generateForm.type !== 'invitation'">
+            <div v-if="!['subscription', 'invitation', 'local_model_access'].includes(generateForm.type)">
               <label class="input-label">
                 {{
                   generateForm.type === 'balance'
@@ -312,6 +313,9 @@
               </p>
             </div>
             <!-- 订阅类型：显示分组选择和有效天数 -->
+            <p v-if="generateForm.type === 'local_model_access'" class="input-hint">
+              {{ t('admin.redeem.localModelAccessHint') }}
+            </p>
             <template v-if="generateForm.type === 'subscription'">
               <div>
                 <label class="input-label">{{ t('admin.redeem.selectGroup') }}</label>
@@ -735,7 +739,8 @@ const typeOptions = computed(() => [
   { value: 'balance', label: t('admin.redeem.balance') },
   { value: 'concurrency', label: t('admin.redeem.concurrency') },
   { value: 'subscription', label: t('admin.redeem.subscription') },
-  { value: 'invitation', label: t('admin.redeem.invitation') }
+  { value: 'invitation', label: t('admin.redeem.invitation') },
+  { value: 'local_model_access', label: t('admin.redeem.localModelAccess') }
 ])
 
 const filterTypeOptions = computed(() => [
@@ -743,7 +748,8 @@ const filterTypeOptions = computed(() => [
   { value: 'balance', label: t('admin.redeem.balance') },
   { value: 'concurrency', label: t('admin.redeem.concurrency') },
   { value: 'subscription', label: t('admin.redeem.subscription') },
-  { value: 'invitation', label: t('admin.redeem.invitation') }
+  { value: 'invitation', label: t('admin.redeem.invitation') },
+  { value: 'local_model_access', label: t('admin.redeem.localModelAccess') }
 ])
 
 const filterStatusOptions = computed(() => [
@@ -841,7 +847,7 @@ const generateForm = reactive({
 watch(
   () => generateForm.type,
   (newType) => {
-    if (newType === 'invitation') {
+    if (newType === 'invitation' || newType === 'local_model_access') {
       generateForm.value = 0
     } else if (generateForm.value === 0) {
       generateForm.value = 10

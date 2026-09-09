@@ -1183,6 +1183,9 @@ export default {
 
   // Redeem
   redeem: {
+    localModelAccess: '本地模型接入',
+    localModelAccessUnlocked: '已永久解锁',
+    localModelAccessLocked: '尚未解锁，兑换专用兑换码后即可开通',
     title: '兑换码',
     description: '输入兑换码以充值余额或增加并发数',
     currentBalance: '当前余额',
@@ -4455,6 +4458,9 @@ export default {
 
     // Redeem Codes Management
     redeem: {
+      localModelAccess: '本地模型接入',
+      permanentUnlock: '已永久解锁',
+      localModelAccessHint: '兑换后为当前账户永久解锁本地模型接入，不增加余额或订阅。已解锁账户不会消耗新的兑换码。',
       title: '兑换码管理',
       description: '生成和管理兑换码',
       generateCodes: '生成兑换码',
@@ -4470,6 +4476,7 @@ export default {
         actions: '操作'
       },
       types: {
+        local_model_access: '本地模型接入',
         balance: '余额',
         concurrency: '并发数',
         subscription: '订阅',
