@@ -15,6 +15,7 @@ func RegisterUserRoutes(
 	jwtAuth middleware.JWTAuthMiddleware,
 	settingService *service.SettingService,
 ) {
+	v1.GET("/local-model-access/keys", h.LocalModelLicense.Keys)
 	authenticated := v1.Group("")
 	authenticated.Use(gin.HandlerFunc(jwtAuth))
 	authenticated.Use(middleware.BackendModeUserGuard(settingService))
@@ -83,6 +84,16 @@ func RegisterUserRoutes(
 		{
 			integration.GET("/me", h.Integration.Me)
 			integration.GET("/entitlements", h.Integration.Entitlements)
+		}
+
+		licenses := authenticated.Group("/local-model-access")
+		{
+			licenses.POST("/challenges", h.LocalModelLicense.Challenge)
+			licenses.GET("/devices", h.LocalModelLicense.Devices)
+			licenses.POST("/devices", h.LocalModelLicense.Register)
+			licenses.DELETE("/devices/:device_id", h.LocalModelLicense.RevokeDevice)
+			licenses.POST("/licenses", h.LocalModelLicense.Issue)
+			licenses.POST("/licenses/renew", h.LocalModelLicense.Renew)
 		}
 
 		// 使用记录

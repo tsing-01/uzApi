@@ -1966,3 +1966,18 @@ func TestLoad_DefaultGatewayImageStreamConfig(t *testing.T) {
 		t.Fatalf("image stream timeout = %d, want greater than ordinary stream timeout %d", cfg.Gateway.ImageStreamDataIntervalTimeout, cfg.Gateway.StreamDataIntervalTimeout)
 	}
 }
+
+func TestLoadLocalModelAccessEnvironment(t *testing.T) {
+	resetViperWithJWTSecret(t)
+	t.Cleanup(viper.Reset)
+	t.Setenv("LOCAL_MODEL_ACCESS_SIGNING_SEED", "test-only-seed")
+	t.Setenv("LOCAL_MODEL_ACCESS_ISSUER", "https://license.example.test")
+	t.Setenv("LOCAL_MODEL_ACCESS_MAX_DEVICES", "3")
+	t.Setenv("LOCAL_MODEL_ACCESS_PREVIOUS_PUBLIC_KEYS", "old-public-key-one,old-public-key-two")
+	cfg, err := Load()
+	require.NoError(t, err)
+	require.Equal(t, "test-only-seed", cfg.LocalModelAccess.SigningSeed)
+	require.Equal(t, "https://license.example.test", cfg.LocalModelAccess.Issuer)
+	require.Equal(t, 3, cfg.LocalModelAccess.MaxDevices)
+	require.Equal(t, []string{"old-public-key-one", "old-public-key-two"}, cfg.LocalModelAccess.PreviousPublicKeys)
+}

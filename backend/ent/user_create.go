@@ -160,6 +160,34 @@ func (_c *UserCreate) SetNillableLocalModelAccessUnlockedAt(v *time.Time) *UserC
 	return _c
 }
 
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (_c *UserCreate) SetLocalModelAccessRevokedAt(v time.Time) *UserCreate {
+	_c.mutation.SetLocalModelAccessRevokedAt(v)
+	return _c
+}
+
+// SetNillableLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLocalModelAccessRevokedAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetLocalModelAccessRevokedAt(*v)
+	}
+	return _c
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (_c *UserCreate) SetLocalModelAccessVersion(v int64) *UserCreate {
+	_c.mutation.SetLocalModelAccessVersion(v)
+	return _c
+}
+
+// SetNillableLocalModelAccessVersion sets the "local_model_access_version" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLocalModelAccessVersion(v *int64) *UserCreate {
+	if v != nil {
+		_c.SetLocalModelAccessVersion(*v)
+	}
+	return _c
+}
+
 // SetUsername sets the "username" field.
 func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	_c.mutation.SetUsername(v)
@@ -648,6 +676,10 @@ func (_c *UserCreate) defaults() error {
 		v := user.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.LocalModelAccessVersion(); !ok {
+		v := user.DefaultLocalModelAccessVersion
+		_c.mutation.SetLocalModelAccessVersion(v)
+	}
 	if _, ok := _c.mutation.Username(); !ok {
 		v := user.DefaultUsername
 		_c.mutation.SetUsername(v)
@@ -732,6 +764,9 @@ func (_c *UserCreate) check() error {
 		if err := user.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.LocalModelAccessVersion(); !ok {
+		return &ValidationError{Name: "local_model_access_version", err: errors.New(`ent: missing required field "User.local_model_access_version"`)}
 	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
@@ -836,6 +871,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LocalModelAccessUnlockedAt(); ok {
 		_spec.SetField(user.FieldLocalModelAccessUnlockedAt, field.TypeTime, value)
 		_node.LocalModelAccessUnlockedAt = &value
+	}
+	if value, ok := _c.mutation.LocalModelAccessRevokedAt(); ok {
+		_spec.SetField(user.FieldLocalModelAccessRevokedAt, field.TypeTime, value)
+		_node.LocalModelAccessRevokedAt = &value
+	}
+	if value, ok := _c.mutation.LocalModelAccessVersion(); ok {
+		_spec.SetField(user.FieldLocalModelAccessVersion, field.TypeInt64, value)
+		_node.LocalModelAccessVersion = value
 	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
@@ -1321,6 +1364,42 @@ func (u *UserUpsert) ClearLocalModelAccessUnlockedAt() *UserUpsert {
 	return u
 }
 
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (u *UserUpsert) SetLocalModelAccessRevokedAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldLocalModelAccessRevokedAt, v)
+	return u
+}
+
+// UpdateLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLocalModelAccessRevokedAt() *UserUpsert {
+	u.SetExcluded(user.FieldLocalModelAccessRevokedAt)
+	return u
+}
+
+// ClearLocalModelAccessRevokedAt clears the value of the "local_model_access_revoked_at" field.
+func (u *UserUpsert) ClearLocalModelAccessRevokedAt() *UserUpsert {
+	u.SetNull(user.FieldLocalModelAccessRevokedAt)
+	return u
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (u *UserUpsert) SetLocalModelAccessVersion(v int64) *UserUpsert {
+	u.Set(user.FieldLocalModelAccessVersion, v)
+	return u
+}
+
+// UpdateLocalModelAccessVersion sets the "local_model_access_version" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLocalModelAccessVersion() *UserUpsert {
+	u.SetExcluded(user.FieldLocalModelAccessVersion)
+	return u
+}
+
+// AddLocalModelAccessVersion adds v to the "local_model_access_version" field.
+func (u *UserUpsert) AddLocalModelAccessVersion(v int64) *UserUpsert {
+	u.Add(user.FieldLocalModelAccessVersion, v)
+	return u
+}
+
 // SetUsername sets the "username" field.
 func (u *UserUpsert) SetUsername(v string) *UserUpsert {
 	u.Set(user.FieldUsername, v)
@@ -1733,6 +1812,48 @@ func (u *UserUpsertOne) UpdateLocalModelAccessUnlockedAt() *UserUpsertOne {
 func (u *UserUpsertOne) ClearLocalModelAccessUnlockedAt() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLocalModelAccessUnlockedAt()
+	})
+}
+
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (u *UserUpsertOne) SetLocalModelAccessRevokedAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocalModelAccessRevokedAt(v)
+	})
+}
+
+// UpdateLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLocalModelAccessRevokedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocalModelAccessRevokedAt()
+	})
+}
+
+// ClearLocalModelAccessRevokedAt clears the value of the "local_model_access_revoked_at" field.
+func (u *UserUpsertOne) ClearLocalModelAccessRevokedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLocalModelAccessRevokedAt()
+	})
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (u *UserUpsertOne) SetLocalModelAccessVersion(v int64) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocalModelAccessVersion(v)
+	})
+}
+
+// AddLocalModelAccessVersion adds v to the "local_model_access_version" field.
+func (u *UserUpsertOne) AddLocalModelAccessVersion(v int64) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddLocalModelAccessVersion(v)
+	})
+}
+
+// UpdateLocalModelAccessVersion sets the "local_model_access_version" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLocalModelAccessVersion() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocalModelAccessVersion()
 	})
 }
 
@@ -2350,6 +2471,48 @@ func (u *UserUpsertBulk) UpdateLocalModelAccessUnlockedAt() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearLocalModelAccessUnlockedAt() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLocalModelAccessUnlockedAt()
+	})
+}
+
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (u *UserUpsertBulk) SetLocalModelAccessRevokedAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocalModelAccessRevokedAt(v)
+	})
+}
+
+// UpdateLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLocalModelAccessRevokedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocalModelAccessRevokedAt()
+	})
+}
+
+// ClearLocalModelAccessRevokedAt clears the value of the "local_model_access_revoked_at" field.
+func (u *UserUpsertBulk) ClearLocalModelAccessRevokedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLocalModelAccessRevokedAt()
+	})
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (u *UserUpsertBulk) SetLocalModelAccessVersion(v int64) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocalModelAccessVersion(v)
+	})
+}
+
+// AddLocalModelAccessVersion adds v to the "local_model_access_version" field.
+func (u *UserUpsertBulk) AddLocalModelAccessVersion(v int64) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddLocalModelAccessVersion(v)
+	})
+}
+
+// UpdateLocalModelAccessVersion sets the "local_model_access_version" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLocalModelAccessVersion() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocalModelAccessVersion()
 	})
 }
 

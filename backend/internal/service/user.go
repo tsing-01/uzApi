@@ -21,6 +21,8 @@ type User struct {
 	Balance                    float64
 	Concurrency                int
 	Status                     string
+	LocalModelAccessRevokedAt  *time.Time
+	LocalModelAccessVersion    int64
 	LocalModelAccessUnlockedAt *time.Time
 	AllowedGroups              []int64
 	TokenVersion               int64 // Incremented on password change to invalidate existing tokens
@@ -101,4 +103,8 @@ func (u *User) SetPassword(password string) error {
 
 func (u *User) CheckPassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) == nil
+}
+
+func (u *User) HasLocalModelAccess() bool {
+	return u != nil && u.LocalModelAccessUnlockedAt != nil && u.LocalModelAccessRevokedAt == nil
 }

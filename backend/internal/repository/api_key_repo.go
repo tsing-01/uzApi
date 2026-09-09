@@ -748,6 +748,8 @@ func userEntityToService(u *dbent.User) *service.User {
 		BalanceNotifyThreshold:     u.BalanceNotifyThreshold,
 		TotalRecharged:             u.TotalRecharged,
 		LocalModelAccessUnlockedAt: u.LocalModelAccessUnlockedAt,
+		LocalModelAccessRevokedAt:  u.LocalModelAccessRevokedAt,
+		LocalModelAccessVersion:    u.LocalModelAccessVersion,
 		RPMLimit:                   u.RpmLimit,
 		CreatedAt:                  u.CreatedAt,
 		UpdatedAt:                  u.UpdatedAt,

@@ -39180,6 +39180,9 @@ type UserMutation struct {
 	addconcurrency                 *int
 	status                         *string
 	local_model_access_unlocked_at *time.Time
+	local_model_access_revoked_at  *time.Time
+	local_model_access_version     *int64
+	addlocal_model_access_version  *int64
 	username                       *string
 	notes                          *string
 	totp_secret_encrypted          *string
@@ -39770,6 +39773,111 @@ func (m *UserMutation) LocalModelAccessUnlockedAtCleared() bool {
 func (m *UserMutation) ResetLocalModelAccessUnlockedAt() {
 	m.local_model_access_unlocked_at = nil
 	delete(m.clearedFields, user.FieldLocalModelAccessUnlockedAt)
+}
+
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (m *UserMutation) SetLocalModelAccessRevokedAt(t time.Time) {
+	m.local_model_access_revoked_at = &t
+}
+
+// LocalModelAccessRevokedAt returns the value of the "local_model_access_revoked_at" field in the mutation.
+func (m *UserMutation) LocalModelAccessRevokedAt() (r time.Time, exists bool) {
+	v := m.local_model_access_revoked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocalModelAccessRevokedAt returns the old "local_model_access_revoked_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLocalModelAccessRevokedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocalModelAccessRevokedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocalModelAccessRevokedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocalModelAccessRevokedAt: %w", err)
+	}
+	return oldValue.LocalModelAccessRevokedAt, nil
+}
+
+// ClearLocalModelAccessRevokedAt clears the value of the "local_model_access_revoked_at" field.
+func (m *UserMutation) ClearLocalModelAccessRevokedAt() {
+	m.local_model_access_revoked_at = nil
+	m.clearedFields[user.FieldLocalModelAccessRevokedAt] = struct{}{}
+}
+
+// LocalModelAccessRevokedAtCleared returns if the "local_model_access_revoked_at" field was cleared in this mutation.
+func (m *UserMutation) LocalModelAccessRevokedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldLocalModelAccessRevokedAt]
+	return ok
+}
+
+// ResetLocalModelAccessRevokedAt resets all changes to the "local_model_access_revoked_at" field.
+func (m *UserMutation) ResetLocalModelAccessRevokedAt() {
+	m.local_model_access_revoked_at = nil
+	delete(m.clearedFields, user.FieldLocalModelAccessRevokedAt)
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (m *UserMutation) SetLocalModelAccessVersion(i int64) {
+	m.local_model_access_version = &i
+	m.addlocal_model_access_version = nil
+}
+
+// LocalModelAccessVersion returns the value of the "local_model_access_version" field in the mutation.
+func (m *UserMutation) LocalModelAccessVersion() (r int64, exists bool) {
+	v := m.local_model_access_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocalModelAccessVersion returns the old "local_model_access_version" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLocalModelAccessVersion(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocalModelAccessVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocalModelAccessVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocalModelAccessVersion: %w", err)
+	}
+	return oldValue.LocalModelAccessVersion, nil
+}
+
+// AddLocalModelAccessVersion adds i to the "local_model_access_version" field.
+func (m *UserMutation) AddLocalModelAccessVersion(i int64) {
+	if m.addlocal_model_access_version != nil {
+		*m.addlocal_model_access_version += i
+	} else {
+		m.addlocal_model_access_version = &i
+	}
+}
+
+// AddedLocalModelAccessVersion returns the value that was added to the "local_model_access_version" field in this mutation.
+func (m *UserMutation) AddedLocalModelAccessVersion() (r int64, exists bool) {
+	v := m.addlocal_model_access_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLocalModelAccessVersion resets all changes to the "local_model_access_version" field.
+func (m *UserMutation) ResetLocalModelAccessVersion() {
+	m.local_model_access_version = nil
+	m.addlocal_model_access_version = nil
 }
 
 // SetUsername sets the "username" field.
@@ -41246,7 +41354,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -41276,6 +41384,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.local_model_access_unlocked_at != nil {
 		fields = append(fields, user.FieldLocalModelAccessUnlockedAt)
+	}
+	if m.local_model_access_revoked_at != nil {
+		fields = append(fields, user.FieldLocalModelAccessRevokedAt)
+	}
+	if m.local_model_access_version != nil {
+		fields = append(fields, user.FieldLocalModelAccessVersion)
 	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
@@ -41347,6 +41461,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case user.FieldLocalModelAccessUnlockedAt:
 		return m.LocalModelAccessUnlockedAt()
+	case user.FieldLocalModelAccessRevokedAt:
+		return m.LocalModelAccessRevokedAt()
+	case user.FieldLocalModelAccessVersion:
+		return m.LocalModelAccessVersion()
 	case user.FieldUsername:
 		return m.Username()
 	case user.FieldNotes:
@@ -41404,6 +41522,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStatus(ctx)
 	case user.FieldLocalModelAccessUnlockedAt:
 		return m.OldLocalModelAccessUnlockedAt(ctx)
+	case user.FieldLocalModelAccessRevokedAt:
+		return m.OldLocalModelAccessRevokedAt(ctx)
+	case user.FieldLocalModelAccessVersion:
+		return m.OldLocalModelAccessVersion(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
 	case user.FieldNotes:
@@ -41510,6 +41632,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLocalModelAccessUnlockedAt(v)
+		return nil
+	case user.FieldLocalModelAccessRevokedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocalModelAccessRevokedAt(v)
+		return nil
+	case user.FieldLocalModelAccessVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocalModelAccessVersion(v)
 		return nil
 	case user.FieldUsername:
 		v, ok := value.(string)
@@ -41623,6 +41759,9 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addconcurrency != nil {
 		fields = append(fields, user.FieldConcurrency)
 	}
+	if m.addlocal_model_access_version != nil {
+		fields = append(fields, user.FieldLocalModelAccessVersion)
+	}
 	if m.addbalance_notify_threshold != nil {
 		fields = append(fields, user.FieldBalanceNotifyThreshold)
 	}
@@ -41644,6 +41783,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedBalance()
 	case user.FieldConcurrency:
 		return m.AddedConcurrency()
+	case user.FieldLocalModelAccessVersion:
+		return m.AddedLocalModelAccessVersion()
 	case user.FieldBalanceNotifyThreshold:
 		return m.AddedBalanceNotifyThreshold()
 	case user.FieldTotalRecharged:
@@ -41672,6 +41813,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddConcurrency(v)
+		return nil
+	case user.FieldLocalModelAccessVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLocalModelAccessVersion(v)
 		return nil
 	case user.FieldBalanceNotifyThreshold:
 		v, ok := value.(float64)
@@ -41708,6 +41856,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldLocalModelAccessUnlockedAt) {
 		fields = append(fields, user.FieldLocalModelAccessUnlockedAt)
 	}
+	if m.FieldCleared(user.FieldLocalModelAccessRevokedAt) {
+		fields = append(fields, user.FieldLocalModelAccessRevokedAt)
+	}
 	if m.FieldCleared(user.FieldTotpSecretEncrypted) {
 		fields = append(fields, user.FieldTotpSecretEncrypted)
 	}
@@ -41742,6 +41893,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldLocalModelAccessUnlockedAt:
 		m.ClearLocalModelAccessUnlockedAt()
+		return nil
+	case user.FieldLocalModelAccessRevokedAt:
+		m.ClearLocalModelAccessRevokedAt()
 		return nil
 	case user.FieldTotpSecretEncrypted:
 		m.ClearTotpSecretEncrypted()
@@ -41795,6 +41949,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLocalModelAccessUnlockedAt:
 		m.ResetLocalModelAccessUnlockedAt()
+		return nil
+	case user.FieldLocalModelAccessRevokedAt:
+		m.ResetLocalModelAccessRevokedAt()
+		return nil
+	case user.FieldLocalModelAccessVersion:
+		m.ResetLocalModelAccessVersion()
 		return nil
 	case user.FieldUsername:
 		m.ResetUsername()

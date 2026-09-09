@@ -231,5 +231,5 @@ func (h *IntegrationHandler) Entitlements(c *gin.Context) {
 		UserID                     int64      `json:"user_id"`
 		LocalModelAccessEnabled    bool       `json:"local_model_access_enabled"`
 		LocalModelAccessUnlockedAt *time.Time `json:"local_model_access_unlocked_at"`
-	}{user.ID, user.LocalModelAccessUnlockedAt != nil, user.LocalModelAccessUnlockedAt})
+	}{user.ID, user.HasLocalModelAccess(), user.LocalModelAccessUnlockedAt})
 }

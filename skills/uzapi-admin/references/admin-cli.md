@@ -210,7 +210,7 @@ node skills/uzapi-admin/scripts/uzapi-admin.js api POST /redeem-codes/generate -
 node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/redeem-codes?type=local_model_access&page_size=1'
 ```
 
-每个码只能兑换一次，为当前用户永久开通本地模型接入；不改变余额、并发数或订阅。
+每个码只能兑换一次，为当前用户开通无固定到期时间、可由管理员撤销的本地模型接入权益；不改变余额、并发数或订阅。
 `value` 必须为 0（可省略），不可设置 `group_id` 或非零 `validity_days`。
 `expires_at` / `expires_in_days` 仅控制兑换码使用期限，不是解锁权益的到期时间。
 已解锁账户兑换新码返回 HTTP 409 / `LOCAL_MODEL_ACCESS_ALREADY_UNLOCKED`，新码仍未使用。
@@ -236,4 +236,18 @@ node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/redeem-codes?type=local
 客户端应在登录或切换账户、兑换成功及使用受限能力前重新向服务端检查权益。
 401 应重新认证；其他查询失败应保留“待验证/不可用”状态，不能视为已解锁。
 不要把客户端存储的布尔值或用户可编辑的个人资料作为授权依据。
-本次 uzApi 提供权益记录与查询；24Hbutler 的具体入口和执行阶段鉴权需在后续接入中实现。
+完整的设备登记、挑战签名、5 分钟授权、续签和撤销协议见 [本地模型接入协议](../../../docs/LOCAL_MODEL_ACCESS.md)。
+权益布尔值用于展示；实际功能入口应验证短期签名授权。24Hbutler 接入在后续单独完成。
+
+### 撤销本地模型权益
+
+先通过用户查询核对目标 ID、邮箱和权益，再撤销并回读验证：
+
+```bash
+node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/users/123'
+node skills/uzapi-admin/scripts/uzapi-admin.js api POST '/users/123/local-model-access/revoke' --json '{"reason":"退款"}'
+node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/users/123'
+```
+
+该操作同时撤销此用户全部设备和待使用挑战，禁止继续签发和续签。已签发的离线授权最多剩余 5 分钟。
+再次兑换新码可重新开通权益，已撤销设备公钥不会恢复。

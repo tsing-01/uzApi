@@ -37,6 +37,10 @@ type User struct {
 	Status string `json:"status,omitempty"`
 	// LocalModelAccessUnlockedAt holds the value of the "local_model_access_unlocked_at" field.
 	LocalModelAccessUnlockedAt *time.Time `json:"local_model_access_unlocked_at,omitempty"`
+	// LocalModelAccessRevokedAt holds the value of the "local_model_access_revoked_at" field.
+	LocalModelAccessRevokedAt *time.Time `json:"local_model_access_revoked_at,omitempty"`
+	// LocalModelAccessVersion holds the value of the "local_model_access_version" field.
+	LocalModelAccessVersion int64 `json:"local_model_access_version,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Notes holds the value of the "notes" field.
@@ -263,11 +267,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldBalance, user.FieldBalanceNotifyThreshold, user.FieldTotalRecharged:
 			values[i] = new(sql.NullFloat64)
-		case user.FieldID, user.FieldConcurrency, user.FieldRpmLimit:
+		case user.FieldID, user.FieldConcurrency, user.FieldLocalModelAccessVersion, user.FieldRpmLimit:
 			values[i] = new(sql.NullInt64)
 		case user.FieldEmail, user.FieldPasswordHash, user.FieldRole, user.FieldStatus, user.FieldUsername, user.FieldNotes, user.FieldTotpSecretEncrypted, user.FieldSignupSource, user.FieldBalanceNotifyThresholdType, user.FieldBalanceNotifyExtraEmails:
 			values[i] = new(sql.NullString)
-		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt, user.FieldLocalModelAccessUnlockedAt, user.FieldTotpEnabledAt, user.FieldLastLoginAt, user.FieldLastActiveAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt, user.FieldLocalModelAccessUnlockedAt, user.FieldLocalModelAccessRevokedAt, user.FieldTotpEnabledAt, user.FieldLastLoginAt, user.FieldLastActiveAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -351,6 +355,19 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LocalModelAccessUnlockedAt = new(time.Time)
 				*_m.LocalModelAccessUnlockedAt = value.Time
+			}
+		case user.FieldLocalModelAccessRevokedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field local_model_access_revoked_at", values[i])
+			} else if value.Valid {
+				_m.LocalModelAccessRevokedAt = new(time.Time)
+				*_m.LocalModelAccessRevokedAt = value.Time
+			}
+		case user.FieldLocalModelAccessVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field local_model_access_version", values[i])
+			} else if value.Valid {
+				_m.LocalModelAccessVersion = value.Int64
 			}
 		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -590,6 +607,14 @@ func (_m *User) String() string {
 		builder.WriteString("local_model_access_unlocked_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	if v := _m.LocalModelAccessRevokedAt; v != nil {
+		builder.WriteString("local_model_access_revoked_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("local_model_access_version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LocalModelAccessVersion))
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)

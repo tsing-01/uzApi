@@ -418,7 +418,7 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 		if !user.IsActive() || user.DeletedAt != nil {
 			return nil, ErrUserNotFound
 		}
-		if user.LocalModelAccessUnlockedAt != nil {
+		if user.HasLocalModelAccess() {
 			return nil, ErrLocalModelAccessAlreadyUnlocked
 		}
 	}
@@ -447,8 +447,9 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 	case RedeemTypeLocalModelAccess:
 		// Serializes different codes for one user; the losing transaction keeps its code.
 		affected, grantErr := tx.User.Update().
-			Where(dbuser.IDEQ(userID), dbuser.StatusEQ(StatusActive), dbuser.DeletedAtIsNil(), dbuser.LocalModelAccessUnlockedAtIsNil()).
-			SetLocalModelAccessUnlockedAt(time.Now().UTC()).Save(txCtx)
+			Where(dbuser.IDEQ(userID), dbuser.StatusEQ(StatusActive), dbuser.DeletedAtIsNil(), dbuser.Or(dbuser.LocalModelAccessUnlockedAtIsNil(), dbuser.LocalModelAccessRevokedAtNotNil())).
+			SetLocalModelAccessUnlockedAt(time.Now().UTC()).ClearLocalModelAccessRevokedAt().
+			AddLocalModelAccessVersion(1).Save(txCtx)
 		if grantErr != nil {
 			return nil, fmt.Errorf("unlock local model access: %w", grantErr)
 		}

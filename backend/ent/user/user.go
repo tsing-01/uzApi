@@ -35,6 +35,10 @@ const (
 	FieldStatus = "status"
 	// FieldLocalModelAccessUnlockedAt holds the string denoting the local_model_access_unlocked_at field in the database.
 	FieldLocalModelAccessUnlockedAt = "local_model_access_unlocked_at"
+	// FieldLocalModelAccessRevokedAt holds the string denoting the local_model_access_revoked_at field in the database.
+	FieldLocalModelAccessRevokedAt = "local_model_access_revoked_at"
+	// FieldLocalModelAccessVersion holds the string denoting the local_model_access_version field in the database.
+	FieldLocalModelAccessVersion = "local_model_access_version"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// FieldNotes holds the string denoting the notes field in the database.
@@ -222,6 +226,8 @@ var Columns = []string{
 	FieldConcurrency,
 	FieldStatus,
 	FieldLocalModelAccessUnlockedAt,
+	FieldLocalModelAccessRevokedAt,
+	FieldLocalModelAccessVersion,
 	FieldUsername,
 	FieldNotes,
 	FieldTotpSecretEncrypted,
@@ -284,6 +290,8 @@ var (
 	DefaultStatus string
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	StatusValidator func(string) error
+	// DefaultLocalModelAccessVersion holds the default value on creation for the "local_model_access_version" field.
+	DefaultLocalModelAccessVersion int64
 	// DefaultUsername holds the default value on creation for the "username" field.
 	DefaultUsername string
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
@@ -364,6 +372,16 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByLocalModelAccessUnlockedAt orders the results by the local_model_access_unlocked_at field.
 func ByLocalModelAccessUnlockedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLocalModelAccessUnlockedAt, opts...).ToFunc()
+}
+
+// ByLocalModelAccessRevokedAt orders the results by the local_model_access_revoked_at field.
+func ByLocalModelAccessRevokedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLocalModelAccessRevokedAt, opts...).ToFunc()
+}
+
+// ByLocalModelAccessVersion orders the results by the local_model_access_version field.
+func ByLocalModelAccessVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLocalModelAccessVersion, opts...).ToFunc()
 }
 
 // ByUsername orders the results by the username field.

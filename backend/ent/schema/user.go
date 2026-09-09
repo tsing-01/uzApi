@@ -61,6 +61,10 @@ func (User) Fields() []ent.Field {
 			Nillable().
 			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
 
+		field.Time("local_model_access_revoked_at").Optional().Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
+		field.Int64("local_model_access_version").Default(1),
+
 		// Optional profile fields (added later; default '' in DB migration)
 		field.String("username").
 			MaxLen(100).

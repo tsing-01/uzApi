@@ -137,7 +137,7 @@
                   >({{ row.group.name }})</span
                 >
               </template>
-              <template v-else-if="row.type === 'local_model_access'">{{ t('admin.redeem.permanentUnlock') }}</template>
+              <template v-else-if="row.type === 'local_model_access'">{{ t('admin.redeem.localModelAccessGrant') }}</template>
               <template v-else>{{ value }}</template>
             </span>
           </template>

@@ -29,7 +29,7 @@ func UserFromServiceShallow(u *service.User) *User {
 		BalanceNotifyThreshold:     u.BalanceNotifyThreshold,
 		BalanceNotifyExtraEmails:   NotifyEmailEntriesFromService(u.BalanceNotifyExtraEmails),
 		TotalRecharged:             u.TotalRecharged,
-		LocalModelAccessEnabled:    u.LocalModelAccessUnlockedAt != nil,
+		LocalModelAccessEnabled:    u.HasLocalModelAccess(),
 		LocalModelAccessUnlockedAt: u.LocalModelAccessUnlockedAt,
 		RPMLimit:                   u.RPMLimit,
 		DeletedAt:                  u.DeletedAt,

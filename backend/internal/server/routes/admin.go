@@ -20,6 +20,8 @@ func RegisterAdminRoutes(
 		// 仪表盘
 		registerDashboardRoutes(admin, h)
 
+		admin.POST("/users/:id/local-model-access/revoke", h.LocalModelLicense.RevokeEntitlement)
+
 		// 用户管理
 		registerUserManagementRoutes(admin, h)
 
