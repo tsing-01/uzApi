@@ -89,7 +89,10 @@ workflow 会：
 3. 只把 `deploy/aliyun` 和必要脚本同步到 ECS。
 4. 在 ECS 上执行 `scripts/aliyun-deploy.sh`。
 5. ECS 拉取指定镜像并重启服务，不在 ECS 上 build。
-6. 等待 `/health` 通过。
+6. 首次部署时为本地模型授权补齐独立签名密钥与 HTTPS issuer，保存在服务器的 `.env.production`（权限 `0600`），并保留修改前的私有备份；已配置的密钥不会自动轮换。issuer 默认取 `https://$DOMAIN`，使用 `:80` 测试地址时必须显式配置真实的 HTTPS issuer。
+7. 同时检查 `/health` 和 `/api/v1/local-model-access/keys`，签名授权未启用时部署会失败。
+
+手动部署若要启用同样的初始化与检查，运行 `ENABLE_LOCAL_MODEL_ACCESS=true ./scripts/aliyun-deploy.sh`。`.env.production.before-license.*` 备份包含旧环境密钥，必须与生产环境文件同等保护；不要上传或提交。并发初始化会被 `.env.production.license-lock` 拦截；只有确认没有部署进程运行后才可清理异常中断留下的锁目录。
 
 ## 5. 数据备份
 

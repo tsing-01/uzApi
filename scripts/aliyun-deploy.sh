@@ -38,6 +38,11 @@ fi
 echo "==> Pulling uzApi image"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull --quiet uzapi
 
+if [ "${ENABLE_LOCAL_MODEL_ACCESS:-false}" = true ]; then
+  echo "==> Ensuring persistent local-model signing configuration"
+  bash "$ROOT_DIR/scripts/aliyun-local-license.sh" "$ENV_FILE" "$COMPOSE_FILE"
+fi
+
 echo "==> Resolved compose timezone"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config | grep -n 'TZ:' || true
 
@@ -51,6 +56,13 @@ fi
 echo "==> Waiting for health check"
 for i in $(seq 1 60); do
   if docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T uzapi wget -q -T 3 -O /dev/null http://localhost:8080/health; then
+    if [ "${ENABLE_LOCAL_MODEL_ACCESS:-false}" = true ]; then
+      if ! docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T uzapi wget -q -T 3 -O /dev/null http://localhost:8080/api/v1/local-model-access/keys; then
+        echo "ERROR: service is healthy but the local-model license signer is unavailable." >&2
+        exit 1
+      fi
+      echo "Local-model license signer is ready."
+    fi
     echo "uzApi is healthy."
     docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" ps
     exit 0

@@ -8,6 +8,15 @@ permissions:
   contents: read
 
 jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check deployment scripts
+        run: |
+          bash -n scripts/aliyun-deploy.sh scripts/aliyun-local-license.sh
+          python3 tools/test_aliyun_local_license.py
+
   test:
     runs-on: ubuntu-latest
     steps:
