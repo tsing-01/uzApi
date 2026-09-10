@@ -1,4 +1,6 @@
 .env.production
+.env.production.*
+!.env.production.example
 backups/
 *.sql
 *.sql.gz

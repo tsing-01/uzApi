@@ -108,9 +108,12 @@ jobs:
           ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "mkdir -p '$ALIYUN_APP_DIR'"
           tar \
             --exclude='deploy/aliyun/.env.production' \
+            --exclude='deploy/aliyun/.env.production.before-license.*' \
+            --exclude='deploy/aliyun/.env.production.license*' \
             -czf - \
             deploy/aliyun \
             scripts/aliyun-deploy.sh \
+            scripts/aliyun-local-license.sh \
             scripts/backup-db.sh \
             | ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "tar -xzf - -C '$ALIYUN_APP_DIR'"
 
@@ -131,4 +134,4 @@ jobs:
           if [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
             printf '%s' "$GHCR_TOKEN" | ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
           fi
-          ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "cd '$ALIYUN_APP_DIR' && test -f scripts/aliyun-deploy.sh && chmod +x scripts/aliyun-deploy.sh && if [ -f scripts/backup-db.sh ]; then chmod +x scripts/backup-db.sh; fi && APP_IMAGE='$APP_IMAGE' APP_IMAGE_TAG='$APP_IMAGE_TAG' ./scripts/aliyun-deploy.sh"
+          ssh $SSH_OPTS "$ALIYUN_USER@$ALIYUN_HOST" "cd '$ALIYUN_APP_DIR' && test -f scripts/aliyun-deploy.sh && chmod +x scripts/aliyun-deploy.sh && if [ -f scripts/backup-db.sh ]; then chmod +x scripts/backup-db.sh; fi && ENABLE_LOCAL_MODEL_ACCESS=true APP_IMAGE='$APP_IMAGE' APP_IMAGE_TAG='$APP_IMAGE_TAG' ./scripts/aliyun-deploy.sh"
