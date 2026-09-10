@@ -64,6 +64,8 @@ export interface UserProfileSourceContext {
 }
 
 export interface User {
+  local_model_access_enabled?: boolean
+  local_model_access_unlocked_at?: string | null
   id: number
   username: string
   email: string
@@ -1193,7 +1195,7 @@ export interface CodexSessionImportResult {
 
 // ==================== Usage & Redeem Types ====================
 
-export type RedeemCodeType = 'balance' | 'concurrency' | 'subscription' | 'invitation'
+export type RedeemCodeType = 'balance' | 'concurrency' | 'subscription' | 'invitation' | 'local_model_access'
 export type UsageRequestType = 'unknown' | 'sync' | 'stream' | 'ws_v2'
 export type ImageSizeSource = 'output' | 'input' | 'default' | 'legacy'
 export type ImageSizeBreakdown = Record<string, number>

@@ -3,9 +3,10 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import RedeemView from '../RedeemView.vue'
 
-const { listRedeemCodes, batchUpdateRedeemCodes, getAllGroups, showSuccess, showError, showInfo } =
+const { listRedeemCodes, generateRedeemCodes, batchUpdateRedeemCodes, getAllGroups, showSuccess, showError, showInfo } =
   vi.hoisted(() => ({
     listRedeemCodes: vi.fn(),
+    generateRedeemCodes: vi.fn(),
     batchUpdateRedeemCodes: vi.fn(),
     getAllGroups: vi.fn(),
     showSuccess: vi.fn(),
@@ -17,7 +18,7 @@ vi.mock('@/api/admin', () => ({
   adminAPI: {
     redeem: {
       list: listRedeemCodes,
-      generate: vi.fn(),
+      generate: generateRedeemCodes,
       delete: vi.fn(),
       batchDelete: vi.fn(),
       batchUpdate: batchUpdateRedeemCodes,
@@ -105,6 +106,8 @@ describe('admin RedeemView batch update', () => {
     document.body.innerHTML = ''
 
     listRedeemCodes.mockReset()
+    generateRedeemCodes.mockReset()
+    generateRedeemCodes.mockResolvedValue([])
     batchUpdateRedeemCodes.mockReset()
     getAllGroups.mockReset()
     showSuccess.mockReset()
@@ -184,4 +187,28 @@ describe('admin RedeemView batch update', () => {
     })
     expect(showSuccess).toHaveBeenCalledWith('admin.redeem.batchUpdateSuccess')
   })
+  it('generates a permanent local access code with no monetary or subscription value', async () => {
+    const wrapper = mount(RedeemView, {
+      attachTo: document.body,
+      global: { stubs: {
+        AppLayout: { template: '<div><slot /></div>' },
+        TablePageLayout: { template: '<div><slot name="filters" /><slot name="table" /></div>' },
+        DataTable: DataTableStub, Pagination: true, ConfirmDialog: true, Select: SelectStub,
+        GroupBadge: true, GroupOptionItem: true, Icon: true, Teleport: true
+      } }
+    })
+    await flushPromises()
+    const open = wrapper.findAll('button').find(button => button.text() === 'admin.redeem.generateCodes')!
+    await open.trigger('click')
+    const form = wrapper.get('form')
+    await form.get('select').setValue('local_model_access')
+    await flushPromises()
+    expect(wrapper.get('form').text()).toContain('admin.redeem.localModelAccessHint')
+    expect(wrapper.get('form').text()).not.toContain('admin.redeem.amount')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(generateRedeemCodes).toHaveBeenCalledWith(1, 'local_model_access', 0, undefined, undefined, undefined)
+    wrapper.unmount()
+  })
+
 })

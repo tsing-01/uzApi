@@ -2,26 +2,26 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	dbent "github.com/uzapi/ent"
+	dbuser "github.com/uzapi/ent/user"
 	infraerrors "github.com/uzapi/internal/pkg/errors"
 	"github.com/uzapi/internal/pkg/logger"
 	"github.com/uzapi/internal/pkg/pagination"
 )
 
 var (
-	ErrRedeemCodeNotFound  = infraerrors.NotFound("REDEEM_CODE_NOT_FOUND", "redeem code not found")
-	ErrRedeemCodeUsed      = infraerrors.Conflict("REDEEM_CODE_USED", "redeem code already used")
-	ErrRedeemCodeExpired   = infraerrors.Conflict("REDEEM_CODE_EXPIRED", "redeem code expired")
-	ErrInsufficientBalance = infraerrors.BadRequest("INSUFFICIENT_BALANCE", "insufficient balance")
-	ErrRedeemRateLimited   = infraerrors.TooManyRequests("REDEEM_RATE_LIMITED", "too many failed attempts, please try again later")
-	ErrRedeemCodeLocked    = infraerrors.Conflict("REDEEM_CODE_LOCKED", "redeem code is being processed, please try again")
+	ErrLocalModelAccessAlreadyUnlocked = infraerrors.Conflict("LOCAL_MODEL_ACCESS_ALREADY_UNLOCKED", "local model access is already unlocked; redeem code was not consumed")
+	ErrRedeemCodeNotFound              = infraerrors.NotFound("REDEEM_CODE_NOT_FOUND", "redeem code not found")
+	ErrRedeemCodeUsed                  = infraerrors.Conflict("REDEEM_CODE_USED", "redeem code already used")
+	ErrRedeemCodeExpired               = infraerrors.Conflict("REDEEM_CODE_EXPIRED", "redeem code expired")
+	ErrInsufficientBalance             = infraerrors.BadRequest("INSUFFICIENT_BALANCE", "insufficient balance")
+	ErrRedeemRateLimited               = infraerrors.TooManyRequests("REDEEM_RATE_LIMITED", "too many failed attempts, please try again later")
+	ErrRedeemCodeLocked                = infraerrors.Conflict("REDEEM_CODE_LOCKED", "redeem code is being processed, please try again")
 )
 
 const (
@@ -168,24 +168,9 @@ func NewRedeemService(
 
 // GenerateRandomCode 生成随机兑换码
 func (s *RedeemService) GenerateRandomCode() (string, error) {
-	// 生成16字节随机数据
-	bytes := make([]byte, 16)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("generate random bytes: %w", err)
-	}
-
-	// 转换为十六进制字符串
-	code := hex.EncodeToString(bytes)
-
-	// 格式化为 XXXX-XXXX-XXXX-XXXX 格式
-	parts := []string{
-		strings.ToUpper(code[0:8]),
-		strings.ToUpper(code[8:16]),
-		strings.ToUpper(code[16:24]),
-		strings.ToUpper(code[24:32]),
-	}
-
-	return strings.Join(parts, "-"), nil
+	// Keep all 128 random bits within the database's 32-character code column.
+	code, err := GenerateRedeemCode()
+	return strings.ToUpper(code), err
 }
 
 // GenerateCodes 批量生成兑换码
@@ -195,12 +180,16 @@ func (s *RedeemService) GenerateCodes(ctx context.Context, req GenerateCodesRequ
 	}
 
 	// 邀请码类型不需要数值，其他类型需要非零值（支持负数用于退款）
-	if req.Type != RedeemTypeInvitation && req.Value == 0 {
+	if req.Type != RedeemTypeInvitation && req.Type != RedeemTypeLocalModelAccess && req.Value == 0 {
 		return nil, errors.New("value must not be zero")
 	}
 
 	if req.Count > 1000 {
 		return nil, errors.New("cannot generate more than 1000 codes at once")
+	}
+
+	if err := validateLocalModelAccessCode(req.Type, req.Value, nil, 0); err != nil {
+		return nil, err
 	}
 
 	codeType := req.Type
@@ -251,8 +240,11 @@ func (s *RedeemService) CreateCode(ctx context.Context, code *RedeemCode) error 
 	if code.Type == "" {
 		code.Type = RedeemTypeBalance
 	}
-	if code.Type != RedeemTypeInvitation && code.Value == 0 {
+	if code.Type != RedeemTypeInvitation && code.Type != RedeemTypeLocalModelAccess && code.Value == 0 {
 		return errors.New("value must not be zero")
+	}
+	if err := validateLocalModelAccessCode(code.Type, code.Value, code.GroupID, code.ValidityDays); err != nil {
+		return err
 	}
 	if code.Status == "" {
 		code.Status = StatusUnused
@@ -412,10 +404,23 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 		return nil, infraerrors.BadRequest("REDEEM_CODE_INVALID", "invalid subscription redeem code: missing group_id")
 	}
 
+	if err := validateLocalModelAccessCode(redeemCode.Type, redeemCode.Value, redeemCode.GroupID, redeemCode.ValidityDays); err != nil {
+		return nil, err
+	}
+
 	// 获取用户信息
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
+	}
+
+	if redeemCode.Type == RedeemTypeLocalModelAccess {
+		if !user.IsActive() || user.DeletedAt != nil {
+			return nil, ErrUserNotFound
+		}
+		if user.HasLocalModelAccess() {
+			return nil, ErrLocalModelAccessAlreadyUnlocked
+		}
 	}
 
 	// 使用数据库事务保证兑换码标记与权益发放的原子性
@@ -439,6 +444,18 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 
 	// 执行兑换逻辑（兑换码已被锁定，此时可安全操作）
 	switch redeemCode.Type {
+	case RedeemTypeLocalModelAccess:
+		// Serializes different codes for one user; the losing transaction keeps its code.
+		affected, grantErr := tx.User.Update().
+			Where(dbuser.IDEQ(userID), dbuser.StatusEQ(StatusActive), dbuser.DeletedAtIsNil(), dbuser.Or(dbuser.LocalModelAccessUnlockedAtIsNil(), dbuser.LocalModelAccessRevokedAtNotNil())).
+			SetLocalModelAccessUnlockedAt(time.Now().UTC()).ClearLocalModelAccessRevokedAt().
+			AddLocalModelAccessVersion(1).Save(txCtx)
+		if grantErr != nil {
+			return nil, fmt.Errorf("unlock local model access: %w", grantErr)
+		}
+		if affected != 1 {
+			return nil, ErrLocalModelAccessAlreadyUnlocked
+		}
 	case RedeemTypeBalance:
 		amount := redeemCode.Value
 		// 负数为退款扣减，余额最低为 0

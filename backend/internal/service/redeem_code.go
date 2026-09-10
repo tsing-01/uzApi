@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"time"
+
+	infraerrors "github.com/uzapi/internal/pkg/errors"
 )
 
 type RedeemCode struct {
@@ -53,4 +55,12 @@ func GenerateRedeemCode() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+// A local access code is a permanent entitlement, without monetary or subscription value.
+func validateLocalModelAccessCode(codeType string, value float64, groupID *int64, validityDays int) error {
+	if codeType == RedeemTypeLocalModelAccess && (value != 0 || groupID != nil || validityDays != 0) {
+		return infraerrors.BadRequest("LOCAL_MODEL_ACCESS_CODE_INVALID", "local model access codes require value=0, no group_id and validity_days=0")
+	}
+	return nil
 }

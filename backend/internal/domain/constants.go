@@ -36,10 +36,11 @@ const (
 
 // Redeem type constants
 const (
-	RedeemTypeBalance      = "balance"
-	RedeemTypeConcurrency  = "concurrency"
-	RedeemTypeSubscription = "subscription"
-	RedeemTypeInvitation   = "invitation"
+	RedeemTypeBalance          = "balance"
+	RedeemTypeConcurrency      = "concurrency"
+	RedeemTypeSubscription     = "subscription"
+	RedeemTypeInvitation       = "invitation"
+	RedeemTypeLocalModelAccess = "local_model_access"
 )
 
 // ActivationCode status constants

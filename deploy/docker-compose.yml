@@ -88,6 +88,10 @@ services:
       # will be generated on each startup.
       # Generate a secure secret: openssl rand -hex 32
       - JWT_SECRET=${JWT_SECRET:-}
+      - LOCAL_MODEL_ACCESS_SIGNING_SEED=${LOCAL_MODEL_ACCESS_SIGNING_SEED:-}
+      - LOCAL_MODEL_ACCESS_ISSUER=${LOCAL_MODEL_ACCESS_ISSUER:-}
+      - LOCAL_MODEL_ACCESS_MAX_DEVICES=${LOCAL_MODEL_ACCESS_MAX_DEVICES:-2}
+      - LOCAL_MODEL_ACCESS_PREVIOUS_PUBLIC_KEYS=${LOCAL_MODEL_ACCESS_PREVIOUS_PUBLIC_KEYS:-}
       - JWT_EXPIRE_HOUR=${JWT_EXPIRE_HOUR:-24}
 
       # =======================================================================

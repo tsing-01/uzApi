@@ -166,6 +166,67 @@ func (_u *UserUpdate) SetNillableStatus(v *string) *UserUpdate {
 	return _u
 }
 
+// SetLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field.
+func (_u *UserUpdate) SetLocalModelAccessUnlockedAt(v time.Time) *UserUpdate {
+	_u.mutation.SetLocalModelAccessUnlockedAt(v)
+	return _u
+}
+
+// SetNillableLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLocalModelAccessUnlockedAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetLocalModelAccessUnlockedAt(*v)
+	}
+	return _u
+}
+
+// ClearLocalModelAccessUnlockedAt clears the value of the "local_model_access_unlocked_at" field.
+func (_u *UserUpdate) ClearLocalModelAccessUnlockedAt() *UserUpdate {
+	_u.mutation.ClearLocalModelAccessUnlockedAt()
+	return _u
+}
+
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (_u *UserUpdate) SetLocalModelAccessRevokedAt(v time.Time) *UserUpdate {
+	_u.mutation.SetLocalModelAccessRevokedAt(v)
+	return _u
+}
+
+// SetNillableLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLocalModelAccessRevokedAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetLocalModelAccessRevokedAt(*v)
+	}
+	return _u
+}
+
+// ClearLocalModelAccessRevokedAt clears the value of the "local_model_access_revoked_at" field.
+func (_u *UserUpdate) ClearLocalModelAccessRevokedAt() *UserUpdate {
+	_u.mutation.ClearLocalModelAccessRevokedAt()
+	return _u
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (_u *UserUpdate) SetLocalModelAccessVersion(v int64) *UserUpdate {
+	_u.mutation.ResetLocalModelAccessVersion()
+	_u.mutation.SetLocalModelAccessVersion(v)
+	return _u
+}
+
+// SetNillableLocalModelAccessVersion sets the "local_model_access_version" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLocalModelAccessVersion(v *int64) *UserUpdate {
+	if v != nil {
+		_u.SetLocalModelAccessVersion(*v)
+	}
+	return _u
+}
+
+// AddLocalModelAccessVersion adds value to the "local_model_access_version" field.
+func (_u *UserUpdate) AddLocalModelAccessVersion(v int64) *UserUpdate {
+	_u.mutation.AddLocalModelAccessVersion(v)
+	return _u
+}
+
 // SetUsername sets the "username" field.
 func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
 	_u.mutation.SetUsername(v)
@@ -1080,6 +1141,24 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.LocalModelAccessUnlockedAt(); ok {
+		_spec.SetField(user.FieldLocalModelAccessUnlockedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LocalModelAccessUnlockedAtCleared() {
+		_spec.ClearField(user.FieldLocalModelAccessUnlockedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LocalModelAccessRevokedAt(); ok {
+		_spec.SetField(user.FieldLocalModelAccessRevokedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LocalModelAccessRevokedAtCleared() {
+		_spec.ClearField(user.FieldLocalModelAccessRevokedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LocalModelAccessVersion(); ok {
+		_spec.SetField(user.FieldLocalModelAccessVersion, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedLocalModelAccessVersion(); ok {
+		_spec.AddField(user.FieldLocalModelAccessVersion, field.TypeInt64, value)
+	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
@@ -1974,6 +2053,67 @@ func (_u *UserUpdateOne) SetNillableStatus(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field.
+func (_u *UserUpdateOne) SetLocalModelAccessUnlockedAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetLocalModelAccessUnlockedAt(v)
+	return _u
+}
+
+// SetNillableLocalModelAccessUnlockedAt sets the "local_model_access_unlocked_at" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLocalModelAccessUnlockedAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetLocalModelAccessUnlockedAt(*v)
+	}
+	return _u
+}
+
+// ClearLocalModelAccessUnlockedAt clears the value of the "local_model_access_unlocked_at" field.
+func (_u *UserUpdateOne) ClearLocalModelAccessUnlockedAt() *UserUpdateOne {
+	_u.mutation.ClearLocalModelAccessUnlockedAt()
+	return _u
+}
+
+// SetLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field.
+func (_u *UserUpdateOne) SetLocalModelAccessRevokedAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetLocalModelAccessRevokedAt(v)
+	return _u
+}
+
+// SetNillableLocalModelAccessRevokedAt sets the "local_model_access_revoked_at" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLocalModelAccessRevokedAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetLocalModelAccessRevokedAt(*v)
+	}
+	return _u
+}
+
+// ClearLocalModelAccessRevokedAt clears the value of the "local_model_access_revoked_at" field.
+func (_u *UserUpdateOne) ClearLocalModelAccessRevokedAt() *UserUpdateOne {
+	_u.mutation.ClearLocalModelAccessRevokedAt()
+	return _u
+}
+
+// SetLocalModelAccessVersion sets the "local_model_access_version" field.
+func (_u *UserUpdateOne) SetLocalModelAccessVersion(v int64) *UserUpdateOne {
+	_u.mutation.ResetLocalModelAccessVersion()
+	_u.mutation.SetLocalModelAccessVersion(v)
+	return _u
+}
+
+// SetNillableLocalModelAccessVersion sets the "local_model_access_version" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLocalModelAccessVersion(v *int64) *UserUpdateOne {
+	if v != nil {
+		_u.SetLocalModelAccessVersion(*v)
+	}
+	return _u
+}
+
+// AddLocalModelAccessVersion adds value to the "local_model_access_version" field.
+func (_u *UserUpdateOne) AddLocalModelAccessVersion(v int64) *UserUpdateOne {
+	_u.mutation.AddLocalModelAccessVersion(v)
 	return _u
 }
 
@@ -2920,6 +3060,24 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LocalModelAccessUnlockedAt(); ok {
+		_spec.SetField(user.FieldLocalModelAccessUnlockedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LocalModelAccessUnlockedAtCleared() {
+		_spec.ClearField(user.FieldLocalModelAccessUnlockedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LocalModelAccessRevokedAt(); ok {
+		_spec.SetField(user.FieldLocalModelAccessRevokedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LocalModelAccessRevokedAtCleared() {
+		_spec.ClearField(user.FieldLocalModelAccessRevokedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LocalModelAccessVersion(); ok {
+		_spec.SetField(user.FieldLocalModelAccessVersion, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedLocalModelAccessVersion(); ok {
+		_spec.AddField(user.FieldLocalModelAccessVersion, field.TypeInt64, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)

@@ -1179,6 +1179,9 @@ export default {
 
   // Redeem
   redeem: {
+    localModelAccess: 'Local model access',
+    localModelAccessUnlocked: 'Unlocked',
+    localModelAccessLocked: 'Redeem a local model access code to unlock',
     title: 'Redeem Code',
     description: 'Enter your redeem code to add balance or increase concurrency',
     currentBalance: 'Current Balance',
@@ -4334,6 +4337,9 @@ export default {
 
     // Redeem Codes
     redeem: {
+      localModelAccess: 'Local model access',
+      localModelAccessGrant: 'Account access entitlement',
+      localModelAccessHint: 'Grants local model access with no fixed expiry. Access may be revoked for refunds or security reasons. Accounts with active access keep their new code. No balance or subscription is added.',
       title: 'Redeem Code Management',
       description: 'Generate and manage redeem codes',
       generateCodes: 'Generate Codes',
@@ -4405,6 +4411,7 @@ export default {
       failedToDeleteUnused: 'Failed to delete unused codes',
       failedToCopy: 'Failed to copy codes',
       types: {
+        local_model_access: 'Local model access',
         balance: 'Balance',
         concurrency: 'Concurrency',
         subscription: 'Subscription',

@@ -199,3 +199,55 @@ node ~/.codex/skills/uzapi-admin/scripts/uzapi-admin.js api POST /admin/accounts
 - 线上写入前先只读核对目标集合。
 - 导出结果包含敏感凭据，优先使用 `--file`。
 - `PUT /admin/accounts/:id` 和 `bulk-update` 接受宽松请求体，字段名不确定时先用 `accounts get` 或后台页面确认。
+
+## 本地模型接入付费兑换码
+
+在管理员兑换码页面选择“本地模型接入”，或通过 CLI 生成：
+
+```bash
+node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/redeem-codes?type=local_model_access&page_size=1'
+node skills/uzapi-admin/scripts/uzapi-admin.js api POST /redeem-codes/generate --json '{"count":1,"type":"local_model_access","value":0,"expires_in_days":7}'
+node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/redeem-codes?type=local_model_access&page_size=1'
+```
+
+每个码只能兑换一次，为当前用户开通无固定到期时间、可由管理员撤销的本地模型接入权益；不改变余额、并发数或订阅。
+`value` 必须为 0（可省略），不可设置 `group_id` 或非零 `validity_days`。
+`expires_at` / `expires_in_days` 仅控制兑换码使用期限，不是解锁权益的到期时间。
+已解锁账户兑换新码返回 HTTP 409 / `LOCAL_MODEL_ACCESS_ALREADY_UNLOCKED`，新码仍未使用。
+本类型由 `/redeem-codes/generate` 生成，不支持旧的固定码 `/create-and-redeem` 接口。
+
+### 外部客户端集成（24Hbutler 后续接入）
+
+以下为用户 API，使用登录取得的 `Authorization: Bearer <access_token>`，不接受管理员 API Key 或推理 API Key：
+
+- `POST /api/v1/redeem`，请求 `{"code":"<兑换码>"}`。成功返回标准响应中的兑换记录，`data.type` 为 `local_model_access`，`data.status` 为 `used`。
+- `GET /api/v1/integration/entitlements`，只读取 JWT 对应账户，不接受目标用户 ID；返回 `Cache-Control: no-store`。
+
+未解锁的查询结果：
+
+```json
+{"code":0,"message":"success","data":{"user_id":123,"local_model_access_enabled":false,"local_model_access_unlocked_at":null}}
+```
+
+兑换成功后 `local_model_access_enabled` 为 `true`，`local_model_access_unlocked_at` 为 RFC3339 解锁时间。
+`GET /api/v1/auth/me`、`GET /api/v1/user/profile` 和 `GET /api/v1/integration/me` 中的用户资料也包含这两个字段。
+已有登录 token 无需重新登录即可查到解锁状态；禁用、删除账户和失效 token 无法查询。
+
+客户端应在登录或切换账户、兑换成功及使用受限能力前重新向服务端检查权益。
+401 应重新认证；其他查询失败应保留“待验证/不可用”状态，不能视为已解锁。
+不要把客户端存储的布尔值或用户可编辑的个人资料作为授权依据。
+完整的设备登记、挑战签名、5 分钟授权、续签和撤销协议见 [本地模型接入协议](../../../docs/LOCAL_MODEL_ACCESS.md)。
+权益布尔值用于展示；实际功能入口应验证短期签名授权。24Hbutler 接入在后续单独完成。
+
+### 撤销本地模型权益
+
+先通过用户查询核对目标 ID、邮箱和权益，再撤销并回读验证：
+
+```bash
+node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/users/123'
+node skills/uzapi-admin/scripts/uzapi-admin.js api POST '/users/123/local-model-access/revoke' --json '{"reason":"退款"}'
+node skills/uzapi-admin/scripts/uzapi-admin.js api GET '/users/123'
+```
+
+该操作同时撤销此用户全部设备和待使用挑战，禁止继续签发和续签。已签发的离线授权最多剩余 5 分钟。
+再次兑换新码可重新开通权益，已撤销设备公钥不会恢复。

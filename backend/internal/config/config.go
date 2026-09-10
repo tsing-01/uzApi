@@ -68,6 +68,7 @@ type Config struct {
 	Database                DatabaseConfig                `mapstructure:"database"`
 	Redis                   RedisConfig                   `mapstructure:"redis"`
 	Ops                     OpsConfig                     `mapstructure:"ops"`
+	LocalModelAccess        LocalModelAccessConfig        `mapstructure:"local_model_access"`
 	JWT                     JWTConfig                     `mapstructure:"jwt"`
 	Totp                    TotpConfig                    `mapstructure:"totp"`
 	LinuxDo                 LinuxDoConnectConfig          `mapstructure:"linuxdo_connect"`
@@ -1225,6 +1226,14 @@ type OpsMetricsCollectorCacheConfig struct {
 	TTL     time.Duration `mapstructure:"ttl"`
 }
 
+// LocalModelAccessConfig holds dedicated license signing material, separate from login JWTs.
+type LocalModelAccessConfig struct {
+	SigningSeed        string   `mapstructure:"signing_seed" json:"-"`
+	Issuer             string   `mapstructure:"issuer"`
+	MaxDevices         int      `mapstructure:"max_devices"`
+	PreviousPublicKeys []string `mapstructure:"previous_public_keys"`
+}
+
 type JWTConfig struct {
 	Secret     string `mapstructure:"secret"`
 	ExpireHour int    `mapstructure:"expire_hour"`
@@ -1737,6 +1746,11 @@ func setDefaults() {
 	// TTL should be slightly larger than collection interval (1m) to maximize cross-replica cache hits.
 	viper.SetDefault("ops.metrics_collector_cache.ttl", 65*time.Second)
 
+	// Device licenses use signing material separate from login JWTs.
+	viper.SetDefault("local_model_access.signing_seed", "")
+	viper.SetDefault("local_model_access.issuer", "")
+	viper.SetDefault("local_model_access.max_devices", 2)
+	viper.SetDefault("local_model_access.previous_public_keys", []string{})
 	// JWT
 	viper.SetDefault("jwt.secret", "")
 	viper.SetDefault("jwt.expire_hour", 24)

@@ -55,6 +55,16 @@ func (User) Fields() []ent.Field {
 			MaxLen(20).
 			Default(domain.StatusActive),
 
+		// Paid entitlement, granted only by a successful redemption transaction.
+		field.Time("local_model_access_unlocked_at").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
+
+		field.Time("local_model_access_revoked_at").Optional().Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
+		field.Int64("local_model_access_version").Default(1),
+
 		// Optional profile fields (added later; default '' in DB migration)
 		field.String("username").
 			MaxLen(100).
