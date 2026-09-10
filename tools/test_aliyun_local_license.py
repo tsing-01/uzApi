@@ -94,6 +94,26 @@ class LicenseDeploymentTests(unittest.TestCase):
         self.initialize()
         self.assertEqual(self.values()["LOCAL_MODEL_ACCESS_ISSUER"], "https://license.uzapi.org/v1")
 
+    def test_explicit_default_issuer_with_noncanonical_caddy_address(self):
+        for domain in (":80", '"uzapi.org, api.uzapi.org"'):
+            with self.subTest(domain=domain):
+                self.env_file.write_text(self.template)
+                self.configure(DOMAIN=domain)
+                self.env["LOCAL_MODEL_ACCESS_DEFAULT_ISSUER"] = "https://api.uzapi.org"
+                self.initialize()
+                self.assertEqual(self.values()["LOCAL_MODEL_ACCESS_ISSUER"], "https://api.uzapi.org")
+
+    def test_default_issuer_does_not_override_persisted_issuer(self):
+        self.env["LOCAL_MODEL_ACCESS_DEFAULT_ISSUER"] = "https://api.uzapi.org"
+        self.configure(LOCAL_MODEL_ACCESS_ISSUER="https://license.uzapi.org/v1")
+        self.initialize()
+        self.assertEqual(self.values()["LOCAL_MODEL_ACCESS_ISSUER"], "https://license.uzapi.org/v1")
+
+    def test_invalid_default_issuer_is_rejected(self):
+        self.env["LOCAL_MODEL_ACCESS_DEFAULT_ISSUER"] = "http://api.uzapi.org"
+        self.initialize(success=False)
+        self.assertEqual(self.env_file.read_text(), self.template)
+
     def test_invalid_configuration_never_overwrites_environment(self):
         for values in (
             {"LOCAL_MODEL_ACCESS_SIGNING_SEED": "not-a-valid-key"},
