@@ -34,6 +34,10 @@ ISSUER="$(get_value LOCAL_MODEL_ACCESS_ISSUER)"
 DOMAIN="$(get_value DOMAIN)"
 NEEDS_WRITE=false
 
+if [ -z "$ISSUER" ] && [ -n "${LOCAL_MODEL_ACCESS_DEFAULT_ISSUER:-}" ]; then
+  ISSUER="$LOCAL_MODEL_ACCESS_DEFAULT_ISSUER"
+  NEEDS_WRITE=true
+fi
 if [ -z "$ISSUER" ]; then
   if ! [[ "$DOMAIN" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]+)?$ ]]; then
     echo "ERROR: set LOCAL_MODEL_ACCESS_ISSUER to the canonical HTTPS API URL (DOMAIN cannot be used)." >&2
