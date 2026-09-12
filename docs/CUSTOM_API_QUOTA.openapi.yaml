@@ -142,6 +142,12 @@ components:
       schema: { type: integer, minimum: 1, maximum: 60 }
       description: Seconds until next server minute; present only for RATE_LIMITED
   schemas:
+    LegacyAuthError:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, description: Existing login or CSRF error code }
+        message: { type: string }
     Envelope:
       type: object
       required: [code, message]
@@ -205,7 +211,7 @@ components:
         Date: { $ref: '#/components/headers/Date' }
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
+          schema: { $ref: '#/components/schemas/LegacyAuthError' }
     Forbidden:
       description: ACCOUNT_DISABLED, CUSTOM_API_AUTHORIZATION_REVOKED, or existing CSRF / admin role restrictions
       headers:
@@ -213,7 +219,10 @@ components:
         Date: { $ref: '#/components/headers/Date' }
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/Error'
+              - $ref: '#/components/schemas/LegacyAuthError'
     Limited:
       description: CUSTOM_API_DAILY_LIMIT_EXCEEDED with original decision data; or RATE_LIMITED with Retry-After (120/account/minute, including GET and retries)
       headers:

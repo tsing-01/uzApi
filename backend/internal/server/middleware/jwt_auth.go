@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/uzapi/internal/pkg/response"
 	"github.com/uzapi/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -61,7 +62,8 @@ func jwtAuth(authService *service.AuthService, userService jwtUserReader, activi
 		user, err := userService.GetByID(c.Request.Context(), claims.UserID)
 		if err != nil {
 			if c.GetBool(localModelQuotaContract) && !errors.Is(err, service.ErrUserNotFound) {
-				AbortWithError(c, 503, "CUSTOM_API_QUOTA_UNAVAILABLE", "Account verification is temporarily unavailable")
+				response.ErrorFrom(c, service.ErrCustomAPIQuotaUnavailable)
+				c.Abort()
 				return
 			}
 			AbortWithError(c, 401, "USER_NOT_FOUND", "User not found")
@@ -71,7 +73,8 @@ func jwtAuth(authService *service.AuthService, userService jwtUserReader, activi
 		// 检查用户状态
 		if !user.IsActive() {
 			if c.GetBool(localModelQuotaContract) {
-				AbortWithError(c, 403, "ACCOUNT_DISABLED", "User account is not active")
+				response.ErrorFrom(c, service.ErrCustomAPIAccountDisabled)
+				c.Abort()
 				return
 			}
 			AbortWithError(c, 401, "USER_INACTIVE", "User account is not active")
