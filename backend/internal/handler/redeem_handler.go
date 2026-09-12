@@ -5,6 +5,7 @@ import (
 	"github.com/uzapi/internal/pkg/response"
 	middleware2 "github.com/uzapi/internal/server/middleware"
 	"github.com/uzapi/internal/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,7 +24,7 @@ func NewRedeemHandler(redeemService *service.RedeemService) *RedeemHandler {
 
 // RedeemRequest represents the redeem code request payload
 type RedeemRequest struct {
-	Code string `json:"code" binding:"required"`
+	Code string `json:"code" binding:"required,max=128"`
 }
 
 // RedeemResponse represents the redeem response
@@ -38,6 +39,8 @@ type RedeemResponse struct {
 // Redeem handles redeeming a code
 // POST /api/v1/redeem
 func (h *RedeemHandler) Redeem(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 16<<10)
 	subject, ok := middleware2.GetAuthSubjectFromContext(c)
 	if !ok {
 		response.Unauthorized(c, "User not authenticated")
@@ -46,7 +49,7 @@ func (h *RedeemHandler) Redeem(c *gin.Context) {
 
 	var req RedeemRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
+		response.BadRequest(c, "Invalid redeem request")
 		return
 	}
 

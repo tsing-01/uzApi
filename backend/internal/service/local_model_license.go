@@ -142,6 +142,7 @@ type LocalModelLicenseStore interface {
 	TouchDevice(context.Context, string, time.Time) error
 	RevokeDevice(context.Context, string, time.Time) (bool, error)
 	RevokeEntitlement(context.Context, time.Time) error
+	GrantEntitlement(context.Context, time.Time) error
 	Audit(context.Context, int64, string, string, string, time.Time) error
 }
 
@@ -411,6 +412,26 @@ func (s *LocalModelLicenseService) RevokeEntitlement(ctx context.Context, userID
 			return err
 		}
 		return store.Audit(ctx, actorID, "entitlement_revoked", "", reason, now)
+	})
+}
+
+func (s *LocalModelLicenseService) GrantEntitlement(ctx context.Context, userID, actorID int64, reason string) error {
+	reason = strings.TrimSpace(reason)
+	if reason == "" || len(reason) > 500 {
+		return infraerrors.BadRequest("LOCAL_ACCESS_GRANT_REASON_REQUIRED", "reason must contain 1-500 bytes")
+	}
+	return s.repo.WithUser(ctx, userID, func(u *User, store LocalModelLicenseStore) error {
+		if !u.IsActive() {
+			return ErrCustomAPIAccountDisabled
+		}
+		if u.HasLocalModelAccess() {
+			return nil
+		}
+		now := time.Now().UTC()
+		if err := store.GrantEntitlement(ctx, now); err != nil {
+			return err
+		}
+		return store.Audit(ctx, actorID, "entitlement_granted", "", reason, now)
 	})
 }
 

@@ -418,9 +418,6 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 		if !user.IsActive() || user.DeletedAt != nil {
 			return nil, ErrUserNotFound
 		}
-		if user.HasLocalModelAccess() {
-			return nil, ErrLocalModelAccessAlreadyUnlocked
-		}
 	}
 
 	// 使用数据库事务保证兑换码标记与权益发放的原子性
@@ -432,6 +429,18 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 
 	// 将事务放入 context，使 repository 方法能够使用同一事务
 	txCtx := dbent.NewTxContext(ctx, tx)
+	var localAccount *dbent.User
+	if redeemCode.Type == RedeemTypeLocalModelAccess {
+		// Lock before setting used_by: its FK otherwise takes a shared account
+		// lock, and parallel redeemers can deadlock when upgrading to FOR UPDATE.
+		localAccount, err = tx.User.Query().Where(dbuser.IDEQ(userID), dbuser.DeletedAtIsNil()).ForUpdate().Only(txCtx)
+		if err != nil {
+			return nil, fmt.Errorf("lock local model account: %w", err)
+		}
+		if localAccount.Status != StatusActive {
+			return nil, ErrCustomAPIAccountDisabled
+		}
+	}
 
 	// 【关键】先标记兑换码为已使用，确保并发安全
 	// 利用数据库乐观锁（WHERE status = 'unused'）保证原子性
@@ -442,19 +451,27 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 		return nil, fmt.Errorf("mark code as used: %w", err)
 	}
 
+	var grantedVersion *int64
 	// 执行兑换逻辑（兑换码已被锁定，此时可安全操作）
 	switch redeemCode.Type {
 	case RedeemTypeLocalModelAccess:
-		// Serializes different codes for one user; the losing transaction keeps its code.
-		affected, grantErr := tx.User.Update().
-			Where(dbuser.IDEQ(userID), dbuser.StatusEQ(StatusActive), dbuser.DeletedAtIsNil(), dbuser.Or(dbuser.LocalModelAccessUnlockedAtIsNil(), dbuser.LocalModelAccessRevokedAtNotNil())).
-			SetLocalModelAccessUnlockedAt(time.Now().UTC()).ClearLocalModelAccessRevokedAt().
-			AddLocalModelAccessVersion(1).Save(txCtx)
-		if grantErr != nil {
+		// Check consumption before entitlement so a retry of a used code retains
+		// the USED result. A different unused code rolls back on already-unlocked.
+		previous := localAccount.LocalModelAccessUnlockedAt != nil && localAccount.LocalModelAccessRevokedAt == nil
+		if previous {
+			return nil, ErrLocalModelAccessAlreadyUnlocked
+		}
+		now := time.Now().UTC()
+		if _, grantErr := tx.User.UpdateOneID(userID).SetLocalModelAccessUnlockedAt(now).
+			ClearLocalModelAccessRevokedAt().AddLocalModelAccessVersion(1).Save(txCtx); grantErr != nil {
 			return nil, fmt.Errorf("unlock local model access: %w", grantErr)
 		}
-		if affected != 1 {
-			return nil, ErrLocalModelAccessAlreadyUnlocked
+		version := localAccount.LocalModelAccessVersion + 1
+		grantedVersion = &version
+		if _, grantErr := tx.ExecContext(txCtx, `INSERT INTO local_model_license_events
+(user_id,actor_id,event,reason,created_at,previous_enabled,new_enabled,previous_version,new_version,redeem_code_id)
+VALUES($1,$1,'entitlement_redeemed','redeem code',$2,$3,true,$4,$5,$6)`, userID, now, previous, localAccount.LocalModelAccessVersion, version, redeemCode.ID); grantErr != nil {
+			return nil, fmt.Errorf("audit local model access: %w", grantErr)
 		}
 	case RedeemTypeBalance:
 		amount := redeemCode.Value
@@ -522,6 +539,11 @@ func (s *RedeemService) Redeem(ctx context.Context, userID int64, code string) (
 		return nil, fmt.Errorf("get updated redeem code: %w", err)
 	}
 
+	if grantedVersion != nil {
+		enabled := true
+		redeemCode.LocalModelAccessEnabled = &enabled
+		redeemCode.EntitlementVersion = grantedVersion
+	}
 	return redeemCode, nil
 }
 

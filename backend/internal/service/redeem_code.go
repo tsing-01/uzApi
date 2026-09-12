@@ -20,6 +20,10 @@ type RedeemCode struct {
 	CreatedAt time.Time
 	ExpiresAt *time.Time
 
+	// Only populated by a successful local access redemption.
+	LocalModelAccessEnabled *bool
+	EntitlementVersion      *int64
+
 	GroupID      *int64
 	ValidityDays int
 

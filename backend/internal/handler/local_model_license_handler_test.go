@@ -60,6 +60,7 @@ func TestLocalLicenseHTTPAuthenticationIsolationAndBinding(t *testing.T) {
 	group.POST("/local-model-access/licenses/renew", h.Renew)
 	group.DELETE("/local-model-access/devices/:device_id", h.RevokeDevice)
 	group.POST("/admin/users/:id/local-model-access/revoke", h.RevokeEntitlement)
+	group.POST("/admin/users/:id/local-model-access/grant", h.GrantEntitlement)
 	token, err := auth.GenerateToken(u)
 	require.NoError(t, err)
 	adminToken, err := auth.GenerateToken(admin)
@@ -101,6 +102,13 @@ func TestLocalLicenseHTTPAuthenticationIsolationAndBinding(t *testing.T) {
 	before := len(licensesRepo.calls)
 	require.Equal(t, 403, request("POST", "/admin/users/1/local-model-access/revoke", `{"reason":"forged admin"}`, token).Code)
 	require.Len(t, licensesRepo.calls, before)
+	require.Equal(t, 403, request("POST", "/admin/users/1/local-model-access/grant", `{"reason":"forged admin"}`, token).Code)
+	require.Len(t, licensesRepo.calls, before)
+	require.Equal(t, 401, request("POST", "/admin/users/1/local-model-access/grant", `{"reason":"forged admin"}`, "").Code)
+	require.Equal(t, 400, request("POST", "/admin/users/1/local-model-access/grant", `{}`, adminToken).Code)
+	u.LocalModelAccessUnlockedAt = &now // Already granted: admin action is idempotent.
+	require.Equal(t, 200, request("POST", "/admin/users/1/local-model-access/grant", `{"reason":"purchase verified"}`, adminToken).Code)
+	u.LocalModelAccessUnlockedAt = nil
 	require.Equal(t, 400, request("POST", "/admin/users/1/local-model-access/revoke", `{}`, adminToken).Code)
 	require.Equal(t, 400, request("POST", "/admin/users/invalid/local-model-access/revoke", `{"reason":"refund"}`, adminToken).Code)
 	// Authorized idempotent admin revocation targets the path user, not the caller.

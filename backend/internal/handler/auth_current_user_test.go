@@ -21,13 +21,15 @@ func TestAuthHandlerGetCurrentUserReturnsProfileCompatibilityFields(t *testing.T
 	verifiedAt := time.Date(2026, 4, 20, 8, 30, 0, 0, time.UTC)
 	repo := &userHandlerRepoStub{
 		user: &service.User{
-			ID:           31,
-			Email:        "me@example.com",
-			Username:     "linuxdo-handle",
-			Role:         service.RoleUser,
-			Status:       service.StatusActive,
-			AvatarURL:    "https://cdn.example.com/linuxdo.png",
-			AvatarSource: "remote_url",
+			ID:                         31,
+			Email:                      "me@example.com",
+			Username:                   "linuxdo-handle",
+			Role:                       service.RoleUser,
+			Status:                     service.StatusActive,
+			LocalModelAccessUnlockedAt: &verifiedAt,
+			LocalModelAccessVersion:    7,
+			AvatarURL:                  "https://cdn.example.com/linuxdo.png",
+			AvatarSource:               "remote_url",
 		},
 		identities: []service.UserAuthIdentityRecord{
 			{
@@ -62,6 +64,9 @@ func TestAuthHandlerGetCurrentUserReturnsProfileCompatibilityFields(t *testing.T
 	}
 	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
 	require.Equal(t, 0, resp.Code)
+	require.Equal(t, true, resp.Data["local_model_access_enabled"])
+	require.Equal(t, float64(7), resp.Data["entitlement_version"])
+	require.Equal(t, "no-store", recorder.Header().Get("Cache-Control"))
 	require.Equal(t, true, resp.Data["email_bound"])
 	require.Equal(t, true, resp.Data["linuxdo_bound"])
 	require.Equal(t, "https://cdn.example.com/linuxdo.png", resp.Data["avatar_url"])

@@ -21,6 +21,7 @@ func RegisterAdminRoutes(
 		registerDashboardRoutes(admin, h)
 
 		admin.POST("/users/:id/local-model-access/revoke", h.LocalModelLicense.RevokeEntitlement)
+		admin.POST("/users/:id/local-model-access/grant", h.LocalModelLicense.GrantEntitlement)
 
 		// 用户管理
 		registerUserManagementRoutes(admin, h)

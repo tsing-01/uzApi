@@ -262,10 +262,16 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 		return nil, err
 	}
 	localModelLicenseHandler := handler.NewLocalModelLicenseHandler(localModelLicenseService)
+	localModelQuotaRepository := repository.NewLocalModelQuotaRepository(db)
+	localModelQuotaService, err := service.NewLocalModelQuotaService(localModelQuotaRepository)
+	if err != nil {
+		return nil, err
+	}
+	localModelQuotaHandler := handler.NewLocalModelQuotaHandler(localModelQuotaService)
 	handlerActivationCodeHandler := handler.NewActivationCodeHandler(activationCodeService)
 	idempotencyCoordinator := service.ProvideIdempotencyCoordinator(idempotencyRepository, configConfig)
 	idempotencyCleanupService := service.ProvideIdempotencyCleanupService(idempotencyRepository, configConfig)
-	handlers := handler.ProvideHandlers(authHandler, userHandler, apiKeyHandler, usageHandler, redeemHandler, subscriptionHandler, announcementHandler, channelMonitorUserHandler, adminHandlers, gatewayHandler, openAIGatewayHandler, handlerSettingHandler, totpHandler, handlerPaymentHandler, paymentWebhookHandler, availableChannelHandler, integrationHandler, localModelLicenseHandler, handlerActivationCodeHandler, idempotencyCoordinator, idempotencyCleanupService)
+	handlers := handler.ProvideHandlers(authHandler, userHandler, apiKeyHandler, usageHandler, redeemHandler, subscriptionHandler, announcementHandler, channelMonitorUserHandler, adminHandlers, gatewayHandler, openAIGatewayHandler, handlerSettingHandler, totpHandler, handlerPaymentHandler, paymentWebhookHandler, availableChannelHandler, integrationHandler, localModelLicenseHandler, localModelQuotaHandler, handlerActivationCodeHandler, idempotencyCoordinator, idempotencyCleanupService)
 	jwtAuthMiddleware := middleware.NewJWTAuthMiddleware(authService, userService)
 	adminAuthMiddleware := middleware.NewAdminAuthMiddleware(authService, userService, settingService)
 	apiKeyAuthMiddleware := middleware.NewAPIKeyAuthMiddleware(apiKeyService, subscriptionService, configConfig)

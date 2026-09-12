@@ -62,6 +62,14 @@ func TestLocalModelAccessRedemption(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, u.ID, *result.UsedBy)
 		require.Equal(t, service.StatusUsed, result.Status)
+		require.NotNil(t, result.LocalModelAccessEnabled)
+		require.True(t, *result.LocalModelAccessEnabled)
+		require.NotNil(t, result.EntitlementVersion)
+		var auditedVersion int64
+		require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT new_version FROM local_model_license_events WHERE user_id=$1 AND redeem_code_id=$2 AND event='entitlement_redeemed' AND previous_enabled=false AND new_enabled=true`, u.ID, c.ID).Scan(&auditedVersion))
+		require.Equal(t, auditedVersion, *result.EntitlementVersion)
+		_, err = svc.Redeem(ctx, u.ID, c.Code)
+		require.ErrorIs(t, err, service.ErrRedeemCodeUsed)
 		granted, err := users.GetByID(ctx, u.ID)
 		require.NoError(t, err)
 		require.NotNil(t, granted.LocalModelAccessUnlockedAt)
@@ -148,6 +156,25 @@ func TestLocalModelAccessRedemption(t *testing.T) {
 			}
 		}
 		require.Equal(t, 1, used)
+	})
+	t.Run("same user concurrent retries return used not unconsumed", func(t *testing.T) {
+		u, c := newUser(), newCode()
+		var barrier sync.WaitGroup
+		barrier.Add(4)
+		concurrentSvc := service.NewRedeemService(repo, &localAccessBarrierUserRepo{UserRepository: users, barrier: &barrier}, nil, nil, nil, client, nil, nil)
+		results := make(chan error, 4)
+		for range 4 {
+			go func() { _, err := concurrentSvc.Redeem(ctx, u.ID, c.Code); results <- err }()
+		}
+		wins := 0
+		for range 4 {
+			if err := <-results; err == nil {
+				wins++
+			} else {
+				require.ErrorIs(t, err, service.ErrRedeemCodeUsed)
+			}
+		}
+		require.Equal(t, 1, wins)
 	})
 	t.Run("expired disabled malformed and inactive cannot grant", func(t *testing.T) {
 		for _, scenario := range []string{"expired", "disabled", "malformed", "inactive"} {

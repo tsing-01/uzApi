@@ -16,6 +16,7 @@ type User struct {
 	Balance                    float64    `json:"balance"`
 	Concurrency                int        `json:"concurrency"`
 	Status                     string     `json:"status"`
+	EntitlementVersion         int64      `json:"entitlement_version"`
 	LocalModelAccessEnabled    bool       `json:"local_model_access_enabled"`
 	LocalModelAccessUnlockedAt *time.Time `json:"local_model_access_unlocked_at"`
 	AllowedGroups              []int64    `json:"allowed_groups"`
@@ -336,15 +337,17 @@ type ProxyAccountSummary struct {
 }
 
 type RedeemCode struct {
-	ID        int64      `json:"id"`
-	Code      string     `json:"code"`
-	Type      string     `json:"type"`
-	Value     float64    `json:"value"`
-	Status    string     `json:"status"`
-	UsedBy    *int64     `json:"used_by"`
-	UsedAt    *time.Time `json:"used_at"`
-	CreatedAt time.Time  `json:"created_at"`
-	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	LocalModelAccessEnabled *bool      `json:"local_model_access_enabled,omitempty"`
+	EntitlementVersion      *int64     `json:"entitlement_version,omitempty"`
+	ID                      int64      `json:"id"`
+	Code                    string     `json:"code"`
+	Type                    string     `json:"type"`
+	Value                   float64    `json:"value"`
+	Status                  string     `json:"status"`
+	UsedBy                  *int64     `json:"used_by"`
+	UsedAt                  *time.Time `json:"used_at"`
+	CreatedAt               time.Time  `json:"created_at"`
+	ExpiresAt               *time.Time `json:"expires_at,omitempty"`
 
 	GroupID      *int64 `json:"group_id"`
 	ValidityDays int    `json:"validity_days"`

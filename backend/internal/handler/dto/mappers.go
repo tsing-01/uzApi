@@ -30,6 +30,7 @@ func UserFromServiceShallow(u *service.User) *User {
 		BalanceNotifyExtraEmails:   NotifyEmailEntriesFromService(u.BalanceNotifyExtraEmails),
 		TotalRecharged:             u.TotalRecharged,
 		LocalModelAccessEnabled:    u.HasLocalModelAccess(),
+		EntitlementVersion:         u.LocalModelAccessVersion,
 		LocalModelAccessUnlockedAt: u.LocalModelAccessUnlockedAt,
 		RPMLimit:                   u.RPMLimit,
 		DeletedAt:                  u.DeletedAt,
@@ -529,19 +530,21 @@ func RedeemCodeFromServiceAdmin(rc *service.RedeemCode) *AdminRedeemCode {
 
 func redeemCodeFromServiceBase(rc *service.RedeemCode) RedeemCode {
 	out := RedeemCode{
-		ID:           rc.ID,
-		Code:         rc.Code,
-		Type:         rc.Type,
-		Value:        rc.Value,
-		Status:       rc.Status,
-		UsedBy:       rc.UsedBy,
-		UsedAt:       rc.UsedAt,
-		CreatedAt:    rc.CreatedAt,
-		ExpiresAt:    rc.ExpiresAt,
-		GroupID:      rc.GroupID,
-		ValidityDays: rc.ValidityDays,
-		User:         UserFromServiceShallow(rc.User),
-		Group:        GroupFromServiceShallow(rc.Group),
+		LocalModelAccessEnabled: rc.LocalModelAccessEnabled,
+		EntitlementVersion:      rc.EntitlementVersion,
+		ID:                      rc.ID,
+		Code:                    rc.Code,
+		Type:                    rc.Type,
+		Value:                   rc.Value,
+		Status:                  rc.Status,
+		UsedBy:                  rc.UsedBy,
+		UsedAt:                  rc.UsedAt,
+		CreatedAt:               rc.CreatedAt,
+		ExpiresAt:               rc.ExpiresAt,
+		GroupID:                 rc.GroupID,
+		ValidityDays:            rc.ValidityDays,
+		User:                    UserFromServiceShallow(rc.User),
+		Group:                   GroupFromServiceShallow(rc.Group),
 	}
 	if rc.IsExpired() {
 		out.Status = service.StatusExpired

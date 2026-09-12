@@ -124,6 +124,14 @@ func (h *LocalModelLicenseHandler) RevokeDevice(c *gin.Context) {
 	response.Success(c, gin.H{"revoked": true})
 }
 func (h *LocalModelLicenseHandler) RevokeEntitlement(c *gin.Context) {
+	h.changeEntitlement(c, false)
+}
+
+func (h *LocalModelLicenseHandler) GrantEntitlement(c *gin.Context) {
+	h.changeEntitlement(c, true)
+}
+
+func (h *LocalModelLicenseHandler) changeEntitlement(c *gin.Context, grant bool) {
 	actorID, ok := localLicenseSubject(c)
 	if !ok {
 		return
@@ -144,9 +152,14 @@ func (h *LocalModelLicenseHandler) RevokeEntitlement(c *gin.Context) {
 	if !bindLocalLicense(c, &input) {
 		return
 	}
-	if err := h.licenses.RevokeEntitlement(c.Request.Context(), id, actorID, input.Reason); err != nil {
+	if grant {
+		err = h.licenses.GrantEntitlement(c.Request.Context(), id, actorID, input.Reason)
+	} else {
+		err = h.licenses.RevokeEntitlement(c.Request.Context(), id, actorID, input.Reason)
+	}
+	if err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Success(c, gin.H{"revoked": true})
+	response.Success(c, gin.H{"revoked": !grant, "local_model_access_enabled": grant})
 }

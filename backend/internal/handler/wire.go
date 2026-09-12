@@ -115,6 +115,7 @@ func ProvideHandlers(
 	availableChannelHandler *AvailableChannelHandler,
 	integrationHandler *IntegrationHandler,
 	localModelLicenseHandler *LocalModelLicenseHandler,
+	localModelQuotaHandler *LocalModelQuotaHandler,
 	activationCodeHandler *ActivationCodeHandler,
 	_ *service.IdempotencyCoordinator,
 	_ *service.IdempotencyCleanupService,
@@ -138,6 +139,7 @@ func ProvideHandlers(
 		AvailableChannel:  availableChannelHandler,
 		Integration:       integrationHandler,
 		LocalModelLicense: localModelLicenseHandler,
+		LocalModelQuota:   localModelQuotaHandler,
 		ActivationCode:    activationCodeHandler,
 	}
 }
@@ -162,6 +164,7 @@ var ProviderSet = wire.NewSet(
 	NewAvailableChannelHandler,
 	NewIntegrationHandler,
 	NewLocalModelLicenseHandler,
+	NewLocalModelQuotaHandler,
 	NewActivationCodeHandler,
 
 	// Admin handlers
