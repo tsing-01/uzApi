@@ -14,6 +14,8 @@
 
 使用现有登录 Bearer access token 和 CSRF 规则。推理 API Key 不能代替登录，用户 ID 仅来自 JWT。所有授权相关响应设置 `Cache-Control: no-store` 和 HTTP `Date`，包括认证和 CSRF 失败。现有登录失效错误及 CSRF 错误仍按原流程处理。
 
+兼容说明：既有登录/CSRF 中间件使用字符串 `code`（例如 `{"code":"UNAUTHORIZED","message":"Authorization header is required"}`）。新增额度业务错误、`ACCOUNT_DISABLED` 及 `CUSTOM_API_QUOTA_UNAVAILABLE` 使用数字 `code` 和独立 `reason`，包括 JWT 验证之后的账户数据库核验失败。
+
 | 方法与路径 | 用途 |
 | --- | --- |
 | `GET /api/v1/local-model-access` | 当前权限、版本和当天账本；不扣调用次数 |

@@ -149,12 +149,20 @@ func TestCustomAPIQuotaHTTPContract(t *testing.T) {
 	u.Status = service.StatusDisabled
 	w = request("POST", "/requests", body, token)
 	require.Equal(t, 403, w.Code)
-	require.Contains(t, w.Body.String(), "ACCOUNT_DISABLED")
+	var authFailure struct {
+		Code   int    `json:"code"`
+		Reason string `json:"reason"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &authFailure))
+	require.Equal(t, 403, authFailure.Code)
+	require.Equal(t, "ACCOUNT_DISABLED", authFailure.Reason)
 	u.Status = service.StatusActive
 	users.failure = errors.New("SQL secret database credentials")
 	w = request("POST", "/requests", body, token)
 	require.Equal(t, 503, w.Code)
-	require.Contains(t, w.Body.String(), "CUSTOM_API_QUOTA_UNAVAILABLE")
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &authFailure))
+	require.Equal(t, 503, authFailure.Code)
+	require.Equal(t, "CUSTOM_API_QUOTA_UNAVAILABLE", authFailure.Reason)
 	require.NotContains(t, w.Body.String(), "SQL")
 	require.NotContains(t, w.Body.String(), "credentials")
 }
