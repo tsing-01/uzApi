@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: uzApi Custom API quota
+  version: '1.0'
+  description: Account-wide online approvals; existing device licenses do not replace these approvals.
+servers:
+  - url: /api/v1
+security:
+  - loginBearer: []
+paths:
+  /local-model-access:
+    get:
+      operationId: getCustomAPIAccess
+      summary: Current entitlement and Beijing daily usage (does not consume a call)
+      responses:
+        '200':
+          description: Current authoritative state
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            Date: { $ref: '#/components/headers/Date' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data: { $ref: '#/components/schemas/AccessStatus' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/Limited' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /local-model-access/requests:
+    post:
+      operationId: authorizeCustomAPIRequest
+      summary: Commit one approval or daily-limit denial, idempotently
+      description: >-
+        Login identity only; no query parameters or upstream information. At most 1024 bytes.
+        Same account/UUID returns the immutable original decision snapshot, with fresh server_time;
+        successful records are rechecked for account status, version and expiry.
+        Existing CSRF rules apply to browser requests. Retry uncertain results with the same UUID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [request_id]
+              properties:
+                request_id:
+                  type: string
+                  format: uuid
+                  pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+                  example: 5941742f-37dc-4666-9f97-9e3921274b42
+      responses:
+        '200':
+          description: Persisted approval; allowed=true; expiry=min(authorized_at+30s, Beijing midnight)
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            Date: { $ref: '#/components/headers/Date' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data: { $ref: '#/components/schemas/Authorization' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '410':
+          description: CUSTOM_API_AUTHORIZATION_EXPIRED; original successful decision is expired, never extended
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            Date: { $ref: '#/components/headers/Date' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/Limited' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /admin/users/{id}/local-model-access/grant:
+    parameters:
+      - $ref: '#/components/parameters/UserID'
+    post:
+      operationId: grantCustomAPIAccess
+      summary: Admin-only grant with reason and transactional audit
+      description: Requires existing admin authentication and role. Does not reset usage. Already enabled is idempotent.
+      requestBody: { $ref: '#/components/requestBodies/AdminReason' }
+      responses:
+        '200': { $ref: '#/components/responses/AdminChanged' }
+        '400': { description: "Invalid user ID or missing/invalid reason (1-500 bytes)" }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: "USER_NOT_FOUND" }
+        '500': { description: "Operation rolled back on storage/audit failure" }
+  /admin/users/{id}/local-model-access/revoke:
+    parameters:
+      - $ref: '#/components/parameters/UserID'
+    post:
+      operationId: revokeCustomAPIAccess
+      summary: Admin-only revoke with reason and transactional audit
+      description: Increments existing entitlement version; revokes devices and challenges; preserves daily usage.
+      requestBody: { $ref: '#/components/requestBodies/AdminReason' }
+      responses:
+        '200': { $ref: '#/components/responses/AdminChanged' }
+        '400': { description: "Invalid user ID or missing/invalid reason (1-500 bytes)" }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: "USER_NOT_FOUND" }
+        '500': { description: "Operation rolled back on storage/audit failure" }
+components:
+  securitySchemes:
+    loginBearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    UserID:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+  requestBodies:
+    AdminReason:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [reason]
+            properties:
+              reason: { type: string, minLength: 1, maxLength: 500, description: "Trimmed nonempty reason; max 500 UTF-8 bytes" }
+  headers:
+    NoStore:
+      schema: { type: string, enum: [no-store] }
+    Date:
+      schema: { type: string }
+      description: HTTP-date in GMT
+    RetryAfter:
+      schema: { type: integer, minimum: 1, maximum: 60 }
+      description: Seconds until next server minute; present only for RATE_LIMITED
+  schemas:
+    Envelope:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: integer, description: "Zero on success; HTTP status on error" }
+        message: { type: string }
+        reason: { type: string, description: "Stable reason on errors" }
+    Quota:
+      type: object
+      required: [date, timezone, daily_limit, used, remaining, resets_at]
+      properties:
+        date: { type: string, format: date, description: "Beijing calendar day" }
+        timezone: { type: string, enum: [Asia/Shanghai] }
+        daily_limit: { type: integer, enum: [5] }
+        used: { type: integer, format: int64, minimum: 0, description: "All approved calls, including paid access" }
+        remaining: { type: integer, format: int64, nullable: true, minimum: 0, description: "Null while unlocked; otherwise max(0,5-used)" }
+        resets_at: { type: string, format: date-time, description: "Next Beijing midnight in UTC" }
+    AccessStatus:
+      type: object
+      required: [contract_version, local_model_access_enabled, entitlement_version, server_time, quota]
+      properties:
+        contract_version: { type: integer, enum: [1] }
+        local_model_access_enabled: { type: boolean }
+        entitlement_version: { type: integer, format: int64, description: "Existing local_model_access_version" }
+        server_time: { type: string, format: date-time, description: "Fresh database clock in UTC" }
+        quota: { $ref: '#/components/schemas/Quota' }
+    Authorization:
+      allOf:
+        - $ref: '#/components/schemas/AccessStatus'
+        - type: object
+          required: [request_id, allowed, replayed]
+          properties:
+            request_id: { type: string, format: uuid }
+            allowed: { type: boolean }
+            replayed: { type: boolean }
+            authorized_at: { type: string, format: date-time, description: "Original approval time in UTC, absent on daily denial" }
+            expires_at: { type: string, format: date-time, description: "Original expiry in UTC, never extended on replay" }
+    Error:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          required: [reason]
+          properties:
+            data:
+              type: object
+              nullable: true
+              description: Original decision on daily denial/revoked/expired; null or absent on auth, validation, rate limit or storage failures
+  responses:
+    InvalidRequest:
+      description: CUSTOM_API_INVALID_REQUEST; query parameters, body, duplicate fields or UUID invalid
+      headers:
+        Cache-Control: { $ref: '#/components/headers/NoStore' }
+        Date: { $ref: '#/components/headers/Date' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthenticated:
+      description: Existing login errors (UNAUTHORIZED, INVALID_TOKEN, TOKEN_EXPIRED, TOKEN_REVOKED, USER_NOT_FOUND, etc.)
+      headers:
+        Cache-Control: { $ref: '#/components/headers/NoStore' }
+        Date: { $ref: '#/components/headers/Date' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: ACCOUNT_DISABLED, CUSTOM_API_AUTHORIZATION_REVOKED, or existing CSRF / admin role restrictions
+      headers:
+        Cache-Control: { $ref: '#/components/headers/NoStore' }
+        Date: { $ref: '#/components/headers/Date' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Limited:
+      description: CUSTOM_API_DAILY_LIMIT_EXCEEDED with original decision data; or RATE_LIMITED with Retry-After (120/account/minute, including GET and retries)
+      headers:
+        Cache-Control: { $ref: '#/components/headers/NoStore' }
+        Date: { $ref: '#/components/headers/Date' }
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unavailable:
+      description: CUSTOM_API_QUOTA_UNAVAILABLE; no approval or guessed remaining; uncertain results must retry same ID
+      headers:
+        Cache-Control: { $ref: '#/components/headers/NoStore' }
+        Date: { $ref: '#/components/headers/Date' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    AdminChanged:
+      description: Change and audit committed, or already in requested state
+      headers:
+        Cache-Control: { $ref: '#/components/headers/NoStore' }
+        Date: { $ref: '#/components/headers/Date' }
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    required: [revoked, local_model_access_enabled]
+                    properties:
+                      revoked: { type: boolean }
+                      local_model_access_enabled: { type: boolean }

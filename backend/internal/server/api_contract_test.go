@@ -66,6 +66,7 @@ func TestAPIContracts(t *testing.T) {
 					"balance_notify_extra_emails": null,
 					"total_recharged": 0,
                     "local_model_access_enabled": false,
+                    "entitlement_version": 0,
                     "local_model_access_unlocked_at": null,
 					"linuxdo_bound": false,
 					"oidc_bound": false,

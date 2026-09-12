@@ -14,6 +14,7 @@ type localModelLicenseRepository struct{ db *sql.DB }
 type localModelLicenseStore struct {
 	tx     *sql.Tx
 	userID int64
+	user   *service.User
 }
 
 func NewLocalModelLicenseRepository(db *sql.DB) service.LocalModelLicenseRepository {
@@ -21,7 +22,15 @@ func NewLocalModelLicenseRepository(db *sql.DB) service.LocalModelLicenseReposit
 }
 
 func (r *localModelLicenseRepository) WithUser(ctx context.Context, userID int64, fn func(*service.User, service.LocalModelLicenseStore) error) error {
-	tx, err := r.db.BeginTx(ctx, nil)
+	return withLocalModelUser(ctx, r.db, userID, func(u *service.User, tx *sql.Tx) error {
+		return fn(u, &localModelLicenseStore{tx: tx, userID: userID, user: u})
+	})
+}
+
+// Quota decisions, device licensing and entitlement changes share this lock.
+// FOR UPDATE also refuses read-only replicas instead of authorizing from stale state.
+func withLocalModelUser(ctx context.Context, db *sql.DB, userID int64, fn func(*service.User, *sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -35,7 +44,7 @@ func (r *localModelLicenseRepository) WithUser(ctx context.Context, userID int64
 	if err != nil {
 		return err
 	}
-	if err = fn(u, &localModelLicenseStore{tx: tx, userID: userID}); err != nil {
+	if err = fn(u, tx); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -184,6 +193,16 @@ func (s *localModelLicenseStore) RevokeEntitlement(ctx context.Context, now time
 	return err
 }
 func (s *localModelLicenseStore) Audit(ctx context.Context, actorID int64, event, deviceID, reason string, now time.Time) error {
+	if event == "entitlement_granted" || event == "entitlement_revoked" {
+		_, err := s.tx.ExecContext(ctx, `INSERT INTO local_model_license_events(user_id,actor_id,event,reason,created_at,previous_enabled,new_enabled,previous_version,new_version)
+VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, s.userID, actorID, event, reason, now, s.user.HasLocalModelAccess(), event == "entitlement_granted", s.user.LocalModelAccessVersion, s.user.LocalModelAccessVersion+1)
+		return err
+	}
 	_, err := s.tx.ExecContext(ctx, `INSERT INTO local_model_license_events(user_id,device_id,actor_id,event,reason,created_at) VALUES($1,NULLIF($2,''),$3,$4,$5,$6)`, s.userID, deviceID, actorID, event, reason, now)
+	return err
+}
+
+func (s *localModelLicenseStore) GrantEntitlement(ctx context.Context, now time.Time) error {
+	_, err := s.tx.ExecContext(ctx, `UPDATE users SET local_model_access_unlocked_at=$2,local_model_access_revoked_at=NULL,local_model_access_version=local_model_access_version+1,updated_at=$2 WHERE id=$1`, s.userID, now)
 	return err
 }

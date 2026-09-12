@@ -137,6 +137,8 @@ docs/*
 !docs/PAYMENT_CN.md
 !docs/ADMIN_PAYMENT_INTEGRATION_API.md
 !docs/LOCAL_MODEL_ACCESS.md
+!docs/CUSTOM_API_QUOTA.md
+!docs/CUSTOM_API_QUOTA.openapi.yaml
 .serena/
 .codex/
 frontend/coverage/

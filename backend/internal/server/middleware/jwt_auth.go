@@ -60,12 +60,20 @@ func jwtAuth(authService *service.AuthService, userService jwtUserReader, activi
 		// 从数据库获取最新的用户信息
 		user, err := userService.GetByID(c.Request.Context(), claims.UserID)
 		if err != nil {
+			if c.GetBool(localModelQuotaContract) && !errors.Is(err, service.ErrUserNotFound) {
+				AbortWithError(c, 503, "CUSTOM_API_QUOTA_UNAVAILABLE", "Account verification is temporarily unavailable")
+				return
+			}
 			AbortWithError(c, 401, "USER_NOT_FOUND", "User not found")
 			return
 		}
 
 		// 检查用户状态
 		if !user.IsActive() {
+			if c.GetBool(localModelQuotaContract) {
+				AbortWithError(c, 403, "ACCOUNT_DISABLED", "User account is not active")
+				return
+			}
 			AbortWithError(c, 401, "USER_INACTIVE", "User account is not active")
 			return
 		}

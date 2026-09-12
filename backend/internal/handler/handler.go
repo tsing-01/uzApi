@@ -58,6 +58,7 @@ type Handlers struct {
 	PaymentWebhook    *PaymentWebhookHandler
 	AvailableChannel  *AvailableChannelHandler
 	LocalModelLicense *LocalModelLicenseHandler
+	LocalModelQuota   *LocalModelQuotaHandler
 	Integration       *IntegrationHandler
 	ActivationCode    *ActivationCodeHandler
 }

@@ -16,6 +16,9 @@ func RegisterUserRoutes(
 	settingService *service.SettingService,
 ) {
 	v1.GET("/local-model-access/keys", h.LocalModelLicense.Keys)
+	quota := v1.Group("/local-model-access", gin.HandlerFunc(jwtAuth), middleware.BackendModeUserGuard(settingService))
+	quota.GET("", h.LocalModelQuota.Status)
+	quota.POST("/requests", h.LocalModelQuota.Authorize)
 	authenticated := v1.Group("")
 	authenticated.Use(gin.HandlerFunc(jwtAuth))
 	authenticated.Use(middleware.BackendModeUserGuard(settingService))
